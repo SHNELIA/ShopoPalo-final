@@ -24,6 +24,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import org.projectplatformer.lwjgl3.Menu.Esc;
+import org.projectplatformer.lwjgl3.Menu.GameMenu;
 import org.projectplatformer.lwjgl3.enemy.BaseEnemy;
 import org.projectplatformer.lwjgl3.levellogic.TiledLevel;
 import org.projectplatformer.lwjgl3.objectslogic.Coin;
@@ -31,10 +34,14 @@ import org.projectplatformer.lwjgl3.objectslogic.GameObject;
 import org.projectplatformer.lwjgl3.objectslogic.World;
 import org.projectplatformer.lwjgl3.player.Player;
 
+import javax.swing.*;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Головний цикл гри: завантаження ресурсів, оновлення, рендер, управління життям гравця
+ */
 public class Main extends ApplicationAdapter {
     private static final float WORLD_WIDTH = 800f;
     private static final float WORLD_HEIGHT = 480f;
@@ -43,16 +50,22 @@ public class Main extends ApplicationAdapter {
     private static final String MAPS_PATH = "Levels/Maps/";
     private static final String GOBLIN_PATH = "Enemies/Goblin/";
     private static final String SPIDER_PATH = "Enemies/Spider/";
-    private static final String WITCH_PATH   = "Enemies/Witch/";
+    private static final String WITCH_PATH = "Enemies/Witch/";
     private static final String FIREBALL_TEXTURE = "fireball.png";
-    private final List<String> levelPaths = Arrays.asList(MAPS_PATH + "Level1.tmx", MAPS_PATH + "Level2.tmx", MAPS_PATH + "Level3.tmx", MAPS_PATH + "FinalLevel.tmx", MAPS_PATH + "Shop.tmx");
+
+    private final List<String> levelPaths = Arrays.asList(
+        MAPS_PATH + "Level1.tmx",
+        MAPS_PATH + "Level2.tmx",
+        MAPS_PATH + "Level3.tmx",
+        MAPS_PATH + "FinalLevel.tmx",
+        MAPS_PATH + "Shop.tmx"
+    );
     private int currentLevelIndex = 0;
 
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
     private Viewport gameViewport;
-
     private BitmapFont font;
     private AssetManager assetManager;
     private boolean loading = true;
@@ -60,7 +73,6 @@ public class Main extends ApplicationAdapter {
     private World world;
     private Player player;
     private TiledLevel tiledLevel;
-
     private float fallTimer = 0f;
     private static final float FALL_DEATH_DELAY = 0.5f;
 
@@ -70,43 +82,36 @@ public class Main extends ApplicationAdapter {
     private Label deathLabel;
     private TextButton respawnButton;
 
+    /** Налаштування ресурсів та UI перед запуском гри */
     @Override
     public void create() {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         gameViewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
-
         font = new BitmapFont();
         assetManager = new AssetManager();
 
-        // Завантажуємо текстури
+        // Завантаження зображень
         assetManager.load(IMAGES_PATH + "default.png", Texture.class);
         assetManager.load(IMAGES_PATH + "coin.png", Texture.class);
         assetManager.load(GOBLIN_PATH + "Goblin1.png", Texture.class);
         assetManager.load(SPIDER_PATH + "Spider1.png", Texture.class);
-        assetManager.load(WITCH_PATH + "Witch/Walk/Witch1.png",   Texture.class);
+        assetManager.load(WITCH_PATH + "Witch/Walk/Witch1.png", Texture.class);
 
-        // Завантажуємо TMX-карти
-        assetManager.setLoader(TiledMap.class,
-            new TmxMapLoader(new InternalFileHandleResolver()));
+        // Завантаження карт
+        assetManager.setLoader(
+            TiledMap.class,
+            new TmxMapLoader(new InternalFileHandleResolver())
+        );
         for (String path : levelPaths) {
             assetManager.load(path, TiledMap.class);
-        }
-
-        if (StartupHelper.isContinueGame()) {
-            int slot = StartupHelper.getSelectedSlot();
-            SaveData data = SaveManager.load(slot);
-            // TODO: розпакувати з data:
-            //   currentLevelIndex = data.getLevelIndex();
-            //   позицію гравця, монети тощо…
-        } else {
-            // new game: currentLevelIndex = 0, SaveData за замовчуванням
         }
 
         setupUI();
     }
 
+    /** Створення елементів UI для екрану смерті */
     private void setupUI() {
         uiStage = new Stage(new FitViewport(WORLD_WIDTH, WORLD_HEIGHT));
         skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -131,27 +136,23 @@ public class Main extends ApplicationAdapter {
         uiStage.addActor(table);
     }
 
+    /** Дочекаємось завершення завантаження ресурсів і ініціалізуємо рівень */
     private void finishLoading() {
         assetManager.finishLoading();
-
-        // Якщо ми продовжуємо гру — спочатку читаємо збереження
         if (StartupHelper.isContinueGame()) {
             SaveData data = SaveManager.load(StartupHelper.getSelectedSlot());
             currentLevelIndex = data.getLevelIndex();
             loadLevel(currentLevelIndex);
-            // Встановлюємо стан гравця
             player.setPosition(data.getPlayerX(), data.getPlayerY());
             player.setCoins(data.getCoins());
             player.setHealth(data.getHealth());
         } else {
-            // Нова гра
-            currentLevelIndex = 0;
-            loadLevel(currentLevelIndex);
+            loadLevel(0);
         }
-
         loading = false;
     }
 
+    /** Завантаження та ініціалізація заданого рівня */
     private void loadLevel(int idx) {
         world = new World();
         String mapPath = levelPaths.get(idx);
@@ -167,8 +168,17 @@ public class Main extends ApplicationAdapter {
         centerCameraOnPlayer();
     }
 
+    /** Основний ігровий цикл: обробка вводу, оновлення й рендер */
     @Override
     public void render() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            SwingUtilities.invokeLater(() -> {
+                GameMenu menu = StartupHelper.getGameMenu();
+                new Esc.GameWindow(menu);
+            });
+            return;
+        }
+
         float delta = Gdx.graphics.getDeltaTime();
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
@@ -180,18 +190,23 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        // Debug: перемикання рівня
+        Rectangle exit = tiledLevel.getExitZone();
+        if (exit != null && player.getBounds().overlaps(exit)) {
+            currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
+            loadLevel(currentLevelIndex);
+            return;
+        }
+
+        // Перехід на наступний рівень (для дебагу)
         if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
             currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
             loadLevel(currentLevelIndex);
         }
 
-        // Оновлюємо гравця
+        // Оновлення об’єктів
         if (player.isAlive()) {
             player.update(delta, world.getPlatformBounds(), world.getEnemies());
         }
-
-        // Оновлюємо ворогів
         world.update(delta, player, world.getPlatformBounds());
 
         // Збір монет
@@ -205,8 +220,7 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-
-        // Перевірка падіння
+        // Смерть від падіння
         Rectangle pb = player.getBounds();
         if (pb.y + pb.height < 0) {
             fallTimer += delta;
@@ -219,7 +233,7 @@ public class Main extends ApplicationAdapter {
 
         centerCameraOnPlayer();
 
-        // Рендер мапи та спрайтів
+        // Рендер карти та ігор
         gameViewport.apply(false);
         camera.update();
         tiledLevel.renderMap(camera);
@@ -228,14 +242,15 @@ public class Main extends ApplicationAdapter {
         batch.begin();
         world.render(batch);
         if (player != null) player.render(batch);
-        font.draw(batch,
+        font.draw(
+            batch,
             "Coins: " + (player != null ? player.getCoins() : 0),
             camera.position.x + gameViewport.getWorldWidth() / 2f - 100,
             camera.position.y + gameViewport.getWorldHeight() / 2f - 20
         );
         batch.end();
 
-        // Дебаг-хітбокси
+        // Хітбокси
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         if (player != null) player.renderHitbox(shapeRenderer);
@@ -244,11 +259,11 @@ public class Main extends ApplicationAdapter {
         }
         shapeRenderer.end();
 
-        // Бар здоров’я
+        // Панель здоров'я
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         float barX = camera.position.x - gameViewport.getWorldWidth() / 2f + 10;
         float barY = camera.position.y + gameViewport.getWorldHeight() / 2f - 30;
-        float barW = 200, barH = 20;
+        float barW = 200f, barH = 20f;
         float pct = player != null
             ? (float) player.getHealth() / player.getMaxHealth()
             : 0f;
@@ -268,6 +283,7 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+    /** Центрування камери на гравцеві з урахуванням меж карти */
     private void centerCameraOnPlayer() {
         if (player == null || tiledLevel == null) return;
         Rectangle b = player.getBounds();
@@ -275,7 +291,6 @@ public class Main extends ApplicationAdapter {
         float halfH = gameViewport.getWorldHeight() / 2f;
         float mapW = tiledLevel.getMapPixelWidth();
         float mapH = tiledLevel.getMapPixelHeight();
-
         camera.position.set(
             MathUtils.clamp(b.x + b.width / 2f, halfW, mapW - halfW),
             MathUtils.clamp(b.y + b.height / 2f, halfH, mapH - halfH),
@@ -284,10 +299,12 @@ public class Main extends ApplicationAdapter {
         camera.update();
     }
 
+    /** Повторна загрузка поточного рівня */
     private void restartLevel() {
         loadLevel(currentLevelIndex);
     }
 
+    /** Оновлення розміру вікна та Viewport */
     @Override
     public void resize(int width, int height) {
         gameViewport.update(width, height, false);
@@ -295,31 +312,24 @@ public class Main extends ApplicationAdapter {
         centerCameraOnPlayer();
     }
 
+    /** Збереження прогресу і вивільнення ресурсів */
     @Override
     public void dispose() {
-        // 1) Завантажуємо попередній SaveData
         int slot = StartupHelper.getSelectedSlot();
         SaveData data = SaveManager.load(slot);
-
-        // 2) Оновлюємо тільки ті поля, що змінилися
         data.setLevelIndex(currentLevelIndex);
         data.setPlayerX(player.getBounds().x);
         data.setPlayerY(player.getBounds().y);
         data.setCoins(player.getCoins());
         data.setHealth(player.getHealth());
-        // *** не чіпаємо killedEnemies та collectedCoins — вони вже там ***
-
-        // 3) Перезаписуємо той самий файл
         SaveManager.save(slot, data);
 
-        // 4) Тепер чистимо ресурси
         batch.dispose();
         shapeRenderer.dispose();
-        if (player    != null) player.dispose();
-        if (tiledLevel!= null) tiledLevel.dispose();
+        if (player != null) player.dispose();
+        if (tiledLevel != null) tiledLevel.dispose();
         if (assetManager != null) assetManager.dispose();
-        if (uiStage      != null) uiStage.dispose();
-        if (font         != null) font.dispose();
+        if (uiStage != null) uiStage.dispose();
+        if (font != null) font.dispose();
     }
 }
-

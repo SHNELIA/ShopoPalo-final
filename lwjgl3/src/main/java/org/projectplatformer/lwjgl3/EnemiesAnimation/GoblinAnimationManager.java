@@ -19,22 +19,19 @@ public class GoblinAnimationManager implements Disposable {
 
     private float stateTime;
     private State currentState;
-
     private TextureRegion currentFrame;
-
     private final Texture[] frames;
 
     public GoblinAnimationManager() {
         stateTime = 0f;
         currentState = State.WALK;
-
         frames = new Texture[10];
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < frames.length; i++) {
             frames[i] = new Texture("Enemies/Goblin/Goblin" + (i + 1) + ".png");
         }
-        walkAnim   = createAnimation(0, 3, 0.15f, Animation.PlayMode.LOOP);
+        walkAnim = createAnimation(0, 3, 0.15f, Animation.PlayMode.LOOP);
         attackAnim = createAnimation(4, 7, 0.12f, Animation.PlayMode.NORMAL);
-        deathAnim  = createAnimation(8, 9, 0.25f, Animation.PlayMode.NORMAL);
+        deathAnim = createAnimation(8, 9, 0.25f, Animation.PlayMode.NORMAL);
     }
 
     private Animation<TextureRegion> createAnimation(int from, int to, float frameDuration, Animation.PlayMode playMode) {
@@ -49,35 +46,28 @@ public class GoblinAnimationManager implements Disposable {
 
     /**
      * Оновлює анімаційний стан гобліна.
-     * @param delta - час з минулого кадру
-     * @param newState - новий стан
-     * @param facingRight - напрямок (для відзеркалення, але тут не flip-имо!)
+     * @param delta       час з минулого кадру
+     * @param newState    новий стан
+     * @param facingRight напрямок (flip не використовується)
      */
     public void update(float delta, State newState, boolean facingRight) {
-        // Якщо стан змінився — скидаємо stateTime (починаємо анімацію з початку)
         if (currentState != newState) {
             currentState = newState;
             stateTime = 0f;
         } else {
             stateTime += delta;
         }
-
-        // Залежно від стану — потрібний режим циклічності:
         switch (currentState) {
             case WALK:
-                // WALK — циклічна анімація (true: завжди loop)
                 currentFrame = walkAnim.getKeyFrame(stateTime, true);
                 break;
             case ATTACK:
-                // ATTACK — одиночна анімація (false: дограє до кінця й стоїть на останньому кадрі)
                 currentFrame = attackAnim.getKeyFrame(stateTime, false);
                 break;
             case DEATH:
-                // DEATH — одиночна анімація (false: не loop-ить!)
                 currentFrame = deathAnim.getKeyFrame(stateTime, false);
                 break;
         }
-        // Flip тут НЕ робимо!
     }
 
     public TextureRegion getCurrentFrame() {
@@ -85,7 +75,6 @@ public class GoblinAnimationManager implements Disposable {
     }
 
     public boolean isAttackAnimationFinished() {
-        // ATTACK — одиночна, завершена коли дійшло до кінця
         return attackAnim.isAnimationFinished(stateTime);
     }
 
@@ -94,9 +83,9 @@ public class GoblinAnimationManager implements Disposable {
     }
 
     public boolean isDeathAnimationFinished() {
-        // DEATH — одиночна, завершена коли дійшло до кінця
         return deathAnim.isAnimationFinished(stateTime);
     }
+
     public void resetDeathAnim() {
         stateTime = 0f;
     }

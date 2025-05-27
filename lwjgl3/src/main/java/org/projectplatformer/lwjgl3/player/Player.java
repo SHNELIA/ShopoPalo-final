@@ -53,7 +53,7 @@ public class Player {
     // --- Переміщення ---
     private static final float MOVE_SPEED   = 120f;
     private static final float JUMP_SPEED   = 350f;
-    private static final int   MAX_JUMPS    = 3;
+    private static final int   MAX_JUMPS    = 2;
 
     private static final float WALL_THRESHOLD = 5f;
     private static final float WALL_JUMP_UP   = 100f;
@@ -357,15 +357,15 @@ public class Player {
     }
 
     public void renderHitbox(ShapeRenderer r) {
-        r.setColor(1f, 0f, 0f, 1f);
+//        r.setColor(1f, 0f, 0f, 1f);
         Rectangle b = physics.getBounds();
         r.rect(b.x, b.y, b.width, b.height);
         Rectangle hb = currentWeapon.getHitbox();
         if (hb != null) {
-            r.setColor(0f,1f,0f,1f);
+//            r.setColor(0f,1f,0f,1f);
             r.rect(hb.x, hb.y, hb.width, hb.height);
         }
-        if (currentWeapon instanceof BowWeapon) ((BowWeapon)currentWeapon).renderProjectiles(r);
+//        if (currentWeapon instanceof BowWeapon) ((BowWeapon)currentWeapon).renderProjectiles(r);
     }
 
     public boolean isAlive() { return isAlive; }

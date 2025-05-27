@@ -11,13 +11,18 @@ public abstract class Enemy {
     protected boolean isAlive = true;
 
     public Enemy(float x, float y, float width, float height, int maxHealth) {
-        this.bounds = new Rectangle(x, y, width, height);
+        bounds = new Rectangle(x, y, width, height);
         this.maxHealth = maxHealth;
         this.health = maxHealth;
     }
 
+    // Оновлення логіки ворога
     public abstract void update(float delta);
+
+    // Відмалювання ворога
     public abstract void render(SpriteBatch batch);
+
+    // Відмалювання хитбоксу ворога
     public abstract void renderHitbox(ShapeRenderer renderer);
 
     public boolean isAlive() {
@@ -28,6 +33,7 @@ public abstract class Enemy {
         return bounds;
     }
 
+    // Обробка отримання ушкоджень
     public void takeDamage(int amount) {
         if (!isAlive) return;
         health -= amount;
@@ -38,11 +44,11 @@ public abstract class Enemy {
         }
     }
 
+    // Викликається при смерті ворога
     protected void onDeath() {
-        // За потреби: анімація смерті, звук, дроп і т.д.
     }
 
+    // Очищення ресурсів ворога
     public void dispose() {
-        // Якщо є текстури — тут їх чистити
     }
 }
