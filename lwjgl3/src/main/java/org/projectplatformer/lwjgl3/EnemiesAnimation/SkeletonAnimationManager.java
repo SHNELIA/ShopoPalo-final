@@ -29,8 +29,8 @@ public class SkeletonAnimationManager implements Disposable {
         currentState = State.WALK;
 
         // Завантажуємо 16 кадрів з папки Enemies/Skeleton/
-        frames = new Texture[16];
-        for (int i = 0; i < 16; i++) {
+        frames = new Texture[14];
+        for (int i = 0; i < 14; i++) {
             String path = "Enemies/Skeleton/Skeleton" + (i + 1) + ".png";
             if (!Gdx.files.internal(path).exists()) {
                 throw new RuntimeException("❌ Missing file: " + path);
@@ -38,17 +38,19 @@ public class SkeletonAnimationManager implements Disposable {
             frames[i] = new Texture(path);
         }
 
-        walkAnim   = createAnimation(0, 6, 0.15f);  // Skeleton1-6.png
-        deathAnim  = createAnimation(6, 13, 0.25f); // Skeleton7-13.png
-        attackAnim = createAnimation(13, 16, 0.12f); // Skeleton14-16.png
+        walkAnim   = createAnimation(0, 5, 0.15f, Animation.PlayMode.LOOP);
+        attackAnim = createAnimation(6, 8, 0.12f, Animation.PlayMode.NORMAL);
+        deathAnim  = createAnimation(9, 13, 0.25f, Animation.PlayMode.NORMAL);
     }
 
-    private Animation<TextureRegion> createAnimation(int from, int to, float frameDuration) {
+    private Animation<TextureRegion> createAnimation(int from, int to, float frameDuration, Animation.PlayMode playMode) {
         Array<TextureRegion> regions = new Array<>();
         for (int i = from; i < to; i++) {
             regions.add(new TextureRegion(frames[i]));
         }
-        return new Animation<>(frameDuration, regions, Animation.PlayMode.LOOP);
+        Animation<TextureRegion> anim = new Animation<>(frameDuration, regions);
+        anim.setPlayMode(playMode);
+        return anim;
     }
 
     public void update(float delta, State newState, boolean facingRight) {
@@ -61,10 +63,10 @@ public class SkeletonAnimationManager implements Disposable {
 
         switch (currentState) {
             case WALK:
-                currentFrame = walkAnim.getKeyFrame(stateTime);
+                currentFrame = walkAnim.getKeyFrame(stateTime, true);
                 break;
             case ATTACK:
-                currentFrame = attackAnim.getKeyFrame(stateTime);
+                currentFrame = attackAnim.getKeyFrame(stateTime, false);
                 break;
             case DEATH:
                 currentFrame = deathAnim.getKeyFrame(stateTime, false);
@@ -74,6 +76,21 @@ public class SkeletonAnimationManager implements Disposable {
 
     public TextureRegion getCurrentFrame() {
         return currentFrame;
+    }
+
+    // --- Методи для атаки та смерті (як у гобліна) ---
+
+    public void resetAttackAnim() {
+        stateTime = 0f;
+    }
+    public void resetDeathAnim() {
+        stateTime = 0f;
+    }
+    public boolean isAttackAnimationFinished() {
+        return attackAnim.isAnimationFinished(stateTime);
+    }
+    public boolean isDeathAnimationFinished() {
+        return deathAnim.isAnimationFinished(stateTime);
     }
 
     @Override
