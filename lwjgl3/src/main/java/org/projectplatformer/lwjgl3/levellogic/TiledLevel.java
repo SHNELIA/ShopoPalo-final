@@ -15,6 +15,10 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import org.projectplatformer.lwjgl3.SaveData;
+import org.projectplatformer.lwjgl3.SaveManager;
+import org.projectplatformer.lwjgl3.StartupHelper;
+import org.projectplatformer.lwjgl3.enemy.BaseEnemy;
 import org.projectplatformer.lwjgl3.enemy.Goblin;
 import org.projectplatformer.lwjgl3.enemy.Skeleton;
 import org.projectplatformer.lwjgl3.enemy.Spider;
@@ -28,14 +32,16 @@ public class TiledLevel extends Level {
     private final Texture defaultTex, coinTex;
 
     public TiledLevel(AssetManager am, SpriteBatch batch, String mapPath) {
-        this.map      = am.get(mapPath, TiledMap.class);
+        this.map = am.get(mapPath, TiledMap.class);
         this.renderer = new OrthogonalTiledMapRenderer(map, 1f, batch);
-        defaultTex    = am.get("Levels/Images/default.png", Texture.class);
-        coinTex       = am.get("Levels/Images/coin.png", Texture.class);
+        defaultTex = am.get("Levels/Images/default.png", Texture.class);
+        coinTex = am.get("Levels/Images/coin.png", Texture.class);
     }
 
     @Override
     public void createLevel(World world) {
+
+
         // 1) Знаходимо точку спавну Player
         RectangleMapObject spawnObj = null;
         MapLayer spawnLayer = map.getLayers().get("Spawn");
@@ -86,36 +92,72 @@ public class TiledLevel extends Level {
             }
         }
 
-        // 3) Монети з шару "Coins"
+// 3) Монети з шару "Coins"
+        int slot = StartupHelper.getSelectedSlot();
+        SaveData saveData = SaveManager.load(slot);
+        System.out.println(">> Creating level. Slot=" + slot
+            + " | already collected: " + saveData.getCollectedCoins()
+            + " | already killed: "  + saveData.getKilledEnemies());
+
         MapLayer coinsLayer = map.getLayers().get("Coins");
         if (coinsLayer != null) {
+            int coinCounter = 0;
             for (MapObject obj : coinsLayer.getObjects().getByType(RectangleMapObject.class)) {
                 Rectangle r = ((RectangleMapObject) obj).getRectangle();
+                String coinId = "coin_" + (coinCounter++);
 
+                // Дебаг: який ID, і чи фільтруємо?
+                if (saveData.isCoinCollected(coinId)) {
+                    System.out.println("   Skipping coin " + coinId);
+                    continue;
+                }
+                System.out.println("   Spawning coin " + coinId);
+
+                // створюємо анімації…
                 TextureRegion region = new TextureRegion(coinTex);
                 Array<TextureRegion> frames = new Array<>();
                 frames.add(region);
                 Animation<TextureRegion> idleAnim = new Animation<>(0.2f, frames, Animation.PlayMode.LOOP);
                 Animation<TextureRegion> collectAnim = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
-                world.addObject(new Coin(r.x, r.y, idleAnim, collectAnim));
+                Coin coin = new Coin(r.x, r.y, idleAnim, collectAnim);
+                coin.setId(coinId);
+                world.addObject(coin);
             }
         }
 
-        // 4) Вороги з шару "Enemies"
+// 4) Вороги з шару "Enemies"
+        System.out.println(">> already killed: " + saveData.getKilledEnemies());
         MapLayer enemiesLayer = map.getLayers().get("Enemies");
         if (enemiesLayer != null) {
+            int enemyCounter = 0;
             for (MapObject obj : enemiesLayer.getObjects().getByType(RectangleMapObject.class)) {
                 Rectangle r = ((RectangleMapObject) obj).getRectangle();
-                String type = obj.getProperties().get("type", String.class);
+                String enemyId = "enemy_" + (enemyCounter++);
 
-                if ("Goblin".equals(type)) {
-                    world.addEnemy(new Goblin(r.x, r.y));
-                } else if ("Spider".equals(type)) {
-                    world.addEnemy(new Spider(r.x, r.y));
-                } else if ("Skeleton".equals(type)) {
-                    world.addEnemy(new Skeleton(r.x, r.y));
+                if (saveData.isEnemyKilled(enemyId)) {
+                    System.out.println("   Skipping enemy " + enemyId);
+                    continue;
                 }
+                System.out.println("   Spawning enemy " + enemyId);
+
+                BaseEnemy enemy;
+                String type = obj.getProperties().get("type", String.class);
+                switch (type) {
+                    case "Goblin":
+                        enemy = new Goblin(r.x, r.y);
+                        break;
+                    case "Spider":
+                        enemy = new Spider(r.x, r.y);
+                        break;
+                    case "Skeleton":
+                        enemy = new Skeleton(r.x, r.y);
+                        break;
+                    default:
+                        continue;
+                }
+                enemy.setId(enemyId);
+                world.addEnemy(enemy);
             }
         }
     }

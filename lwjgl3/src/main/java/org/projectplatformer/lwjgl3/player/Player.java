@@ -300,6 +300,18 @@ public class Player {
     public int getCoins() { return coins; }
     public Rectangle getBounds() { return physics.getBounds(); }
     public void addCoin() { coins++; }
+    public void setPosition(float x, float y) {
+        // Дістаємо прямокутник хитбоксу й просто змінюємо координати
+        Rectangle b = physics.getBounds();
+        b.x = x;
+        b.y = y;
+    }
+    public void setCoins(int coins) {
+        this.coins = coins;
+    }
+    public void setHealth(int health) {
+        this.health = Math.min(health, maxHealth);
+    }
 
     public void takeDamage(int dmg) {
         if (!isAlive || dying) return;
