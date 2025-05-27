@@ -45,37 +45,43 @@ public class PhysicsComponent {
 
     /** Оновлення позиції та обробка колізій */
     public void update(float delta, List<Rectangle> platforms) {
+
         if (isClimbing) {
+
             velY = climbSpeed;
         } else {
+            // звичайна гравітація
             velY += gravity * delta;
-            if (velY < maxFallSpeed) {
-                velY = maxFallSpeed;
-            }
+            if (velY < maxFallSpeed) velY = maxFallSpeed;
         }
         bounds.y += velY * delta;
 
         for (Rectangle p : platforms) {
-            if (bounds.overlaps(p) && velY <= 0f) {
+            if (!bounds.overlaps(p)) continue;
+            if (velY <= 0f) {
+
                 bounds.y = p.y + p.height;
-                velY = 0f;
-                break;
+            } else {
+                bounds.y = p.y - bounds.height;
             }
+            velY = 0f;
+            break;
         }
 
         bounds.x += velX * delta;
         velX *= drag;
 
         for (Rectangle p : platforms) {
-            if (bounds.overlaps(p)) {
-                if (velX > 0f) {
-                    bounds.x = p.x - bounds.width;
-                } else {
-                    bounds.x = p.x + p.width;
-                }
-                velX = 0f;
-                break;
+            if (!bounds.overlaps(p)) continue;
+            if (velX > 0f) {
+
+                bounds.x = p.x - bounds.width;
+            } else {
+
+                bounds.x = p.x + p.width;
             }
+            velX = 0f;
+            break;
         }
     }
 

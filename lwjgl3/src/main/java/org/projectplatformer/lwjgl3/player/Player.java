@@ -296,21 +296,23 @@ public class Player {
         // 2) оновлюємо фізику (гравітація + колізії внизу й збоку)
         physics.update(delta, platforms);
 
-        // 3) тепер ловимо колізію зверху
+// 3) тепер ловимо колізію зверху
         b = physics.getBounds();
         float newY   = b.y;
         float newTop = newY + b.height;
+        float curVelY = physics.getVelocityY();
 
-        if (velY > 0f) {  // рухаємося вгору
+// Якщо рухаємося вгору і зіштовхаємося зверху платформи
+        if (curVelY > 0f) {
             for (Rectangle p : platforms) {
                 float pBottom = p.y;
-                // якщо зверху перетнули нижню грань платформи
+                // перетин через нижню грань платформи
                 if (oldTop <= pBottom
                     && newTop  >= pBottom
                     && b.x + b.width  > p.x
                     && b.x           < p.x + p.width) {
                     // притиснути голову до низу платформи
-                    b.y = pBottom - b.height;
+                    b.y = pBottom - b.height - 0.01f;  // крихітне зрушення вниз
                     physics.setVelocityY(0f);
                     break;
                 }
