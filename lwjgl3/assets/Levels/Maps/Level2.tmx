@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="15" nextobjectid="58">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="17" nextobjectid="76">
  <tileset firstgid="1" source="../Tilesets/Assets.tsx"/>
  <tileset firstgid="1289" source="../Tilesets/night-town-background-sky.tsx"/>
  <tileset firstgid="1310" source="../Tilesets/Tiles (2).tsx"/>
@@ -148,6 +148,96 @@
   <object id="54" x="3487.5" y="499.5" width="33" height="43"/>
   <object id="55" x="3551.5" y="128" width="44.5" height="64"/>
   <object id="56" x="3647" y="211.5" width="32.5" height="43"/>
+ </objectgroup>
+ <objectgroup id="15" name="Enemies">
+  <object id="58" name="Skeleton" type="Skeleton" x="28" y="424" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Skeleton"/>
+   </properties>
+  </object>
+  <object id="59" name="Skeleton" type="Skeleton" x="540.667" y="613.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Skeleton"/>
+   </properties>
+  </object>
+  <object id="60" name="Skeleton" type="Skeleton" x="410" y="613.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Skeleton"/>
+   </properties>
+  </object>
+  <object id="61" name="Skeleton" type="Skeleton" x="1302" y="580" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Skeleton"/>
+   </properties>
+  </object>
+  <object id="62" name="Spider" type="Spider" x="3663.33" y="170.667" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="63" name="Spider" type="Spider" x="3211.33" y="589.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="64" name="Spider" type="Spider" x="2634" y="360" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="65" name="Spider" type="Spider" x="1750" y="589.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="66" name="Spider" type="Spider" x="1138" y="156" width="76" height="73.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="67" name="Spider" type="Spider" x="3075.33" y="197.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="68" name="Spider" type="Spider" x="3190" y="201.333" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+  <object id="69" name="Spider" type="Spider" x="3092.67" y="588" width="76" height="85.3333">
+   <properties>
+    <property name="type" value="Spider"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="16" name="Coins">
+  <object id="70" name="Coins" type="Coins" x="888" y="634.667" width="65.3333" height="62.6667">
+   <properties>
+    <property name="type" value="Coins"/>
+   </properties>
+  </object>
+  <object id="71" x="276" y="845.333"/>
+  <object id="72" name="Coins" type="Coins" x="1839.33" y="160.667" width="65.3333" height="62.6667">
+   <properties>
+    <property name="type" value="Coins"/>
+   </properties>
+  </object>
+  <object id="73" name="Coins" type="Coins" x="3212.67" y="610" width="65.3333" height="62.6667">
+   <properties>
+    <property name="type" value="Coins"/>
+   </properties>
+  </object>
+  <object id="74" name="Coins" type="Coins" x="1608.67" y="219.333" width="65.3333" height="62.6667">
+   <properties>
+    <property name="type" value="Coins"/>
+   </properties>
+  </object>
+  <object id="75" name="Coins" type="Coins" x="3674" y="188.667" width="65.3333" height="62.6667">
+   <properties>
+    <property name="type" value="Coins"/>
+   </properties>
+  </object>
  </objectgroup>
  <layer id="11" name="key" width="120" height="24">
   <data encoding="csv">

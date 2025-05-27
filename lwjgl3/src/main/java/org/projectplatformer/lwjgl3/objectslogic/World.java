@@ -21,6 +21,16 @@ public class World {
     public void removeEnemy(BaseEnemy e)       { enemies.remove(e); }
     public List<BaseEnemy> getEnemies()        { return enemies; }
 
+    private final List<Rectangle> spikeZones = new ArrayList<>();
+
+    public void addSpike(Rectangle r) {
+        spikeZones.add(r);
+    }
+
+    public List<Rectangle> getSpikeZones() {
+        return spikeZones;
+    }
+
     /** Всі платформи (хітбокси) для колізій */
     public List<Rectangle> getPlatformBounds() {
         List<Rectangle> list = new ArrayList<>();
