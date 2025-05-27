@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="14" nextobjectid="57">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="15" nextobjectid="58">
  <tileset firstgid="1" source="../Tilesets/Assets.tsx"/>
  <tileset firstgid="1289" source="../Tilesets/night-town-background-sky.tsx"/>
  <tileset firstgid="1310" source="../Tilesets/Tiles (2).tsx"/>
@@ -77,6 +77,13 @@
   <object id="14" gid="215" x="194" y="451.818" width="32" height="32"/>
   <object id="16" gid="214" x="160" y="459.636" width="32" height="32"/>
   <object id="17" gid="302" x="-84" y="721" width="32" height="32"/>
+ </objectgroup>
+ <objectgroup id="14" name="triggers">
+  <object id="57" name="exit" x="3783.33" y="583.333" width="57.3333" height="88">
+   <properties>
+    <property name="type" value="exit"/>
+   </properties>
+  </object>
  </objectgroup>
  <layer id="3" name="Spikes1" width="120" height="24">
   <data encoding="csv">

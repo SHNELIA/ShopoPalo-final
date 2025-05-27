@@ -19,10 +19,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import org.projectplatformer.lwjgl3.SaveData;
 import org.projectplatformer.lwjgl3.SaveManager;
 import org.projectplatformer.lwjgl3.StartupHelper;
-import org.projectplatformer.lwjgl3.enemy.BaseEnemy;
-import org.projectplatformer.lwjgl3.enemy.Goblin;
-import org.projectplatformer.lwjgl3.enemy.Skeleton;
-import org.projectplatformer.lwjgl3.enemy.Spider;
+import org.projectplatformer.lwjgl3.enemy.*;
 import org.projectplatformer.lwjgl3.objectslogic.Coin;
 import org.projectplatformer.lwjgl3.objectslogic.Platform;
 import org.projectplatformer.lwjgl3.objectslogic.World;
@@ -154,10 +151,11 @@ public class TiledLevel extends Level {
         MapLayer triggers = map.getLayers().get("triggers");
         if (triggers != null) {
             for (MapObject obj : triggers.getObjects().getByType(RectangleMapObject.class)) {
-                Rectangle r = ((RectangleMapObject)obj).getRectangle();
                 String type = obj.getProperties().get("type", String.class);
                 if ("exit".equals(type)) {
-                    exitZone = r;  // запам’ятали зону виходу
+                    RectangleMapObject rectObj = (RectangleMapObject) obj;
+                    exitZone = rectObj.getRectangle();
+                    break; // якщо на шарі зразу один тригер
                 }
             }
         }
@@ -173,6 +171,9 @@ public class TiledLevel extends Level {
 
     }
 
+    public Rectangle getExitZone() {
+        return exitZone;
+    }
     /** Рендеримо тайлову мапу */
     public void renderMap(OrthographicCamera cam) {
         renderer.setView(cam);
@@ -189,10 +190,6 @@ public class TiledLevel extends Level {
         return p.get("height", Integer.class) * p.get("tileheight", Integer.class);
     }
 
-    /** Повертає зону виходу або null, якщо її нема */
-    public Rectangle getExitZone() {
-        return exitZone;
-    }
 
     @Override
     public void dispose() {

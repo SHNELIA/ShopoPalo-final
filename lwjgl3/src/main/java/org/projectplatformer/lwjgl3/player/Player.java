@@ -51,9 +51,9 @@ public class Player {
 
 
     // --- Переміщення ---
-    private static final float MOVE_SPEED   = 100f;
+    private static final float MOVE_SPEED   = 120f;
     private static final float JUMP_SPEED   = 350f;
-    private static final int   MAX_JUMPS    = 2;
+    private static final int   MAX_JUMPS    = 3;
 
     private static final float WALL_THRESHOLD = 5f;
     private static final float WALL_JUMP_UP   = 100f;
@@ -86,13 +86,14 @@ public class Player {
     private int jumpCount = 0;
 
     private float stateTime = 0f;                   // загальний лічильник часу
-    private float lastTapTimeLeft  = -Float.MAX_VALUE;
-    private float lastTapTimeRight = -Float.MAX_VALUE;
+    private float lastTapTimeLeft  = -DOUBLE_TAP_THRESHOLD;
+    private float lastTapTimeRight = -DOUBLE_TAP_THRESHOLD;
 
-    private static final float DOUBLE_TAP_THRESHOLD = 0.25f;
+    private static final float DOUBLE_TAP_THRESHOLD = 0.5f;
 
     private static final float DASH_DURATION  = 0.3f;
-    private static final float DASH_COOLDOWN  = 1f;
+    private static final float DASH_COOLDOWN  = 1.5f;
+
 
     public Player(float x, float y) {
         Rectangle bounds = new Rectangle(x, y, 32, 52);
@@ -198,24 +199,21 @@ public class Player {
         float    velY = physics.getVelocityY();
 
         float now = Gdx.graphics.getDeltaTime();
-// але краще: вносимо в update(float delta,…) параметр delta, тому
-// використаємо його для зменшення лічильників:
+
         dashCooldownTimer = Math.max(0f, dashCooldownTimer - delta);
         dashTimer         = Math.max(0f, dashTimer         - delta);
-
-        // ==== Подвійний тап для дешу ====
         if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-            // якщо натиск послідовний і cooldown завершено — починаємо деш
-            if (stateTime - lastTapTimeLeft < DOUBLE_TAP_THRESHOLD && dashCooldownTimer <= 0f) {
+            if (stateTime - lastTapTimeLeft < DOUBLE_TAP_THRESHOLD
+                && dashCooldownTimer <= 0f) {
                 dashDirection     = -1;
                 dashTimer         = DASH_DURATION;
                 dashCooldownTimer = DASH_COOLDOWN;
             }
-            // оновлюємо час останнього тапу
             lastTapTimeLeft = stateTime;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
-            if (stateTime - lastTapTimeRight < DOUBLE_TAP_THRESHOLD && dashCooldownTimer <= 0f) {
+            if (stateTime - lastTapTimeRight < DOUBLE_TAP_THRESHOLD
+                && dashCooldownTimer <= 0f) {
                 dashDirection     = 1;
                 dashTimer         = DASH_DURATION;
                 dashCooldownTimer = DASH_COOLDOWN;
@@ -228,7 +226,6 @@ public class Player {
         if (dashTimer > 0f) {
             physics.setVelocityX(dashDirection * DASH_SPEED);
         } else {
-            // звичайний рух
             if (Gdx.input.isKeyPressed(Input.Keys.A)) {
                 physics.setVelocityX(-MOVE_SPEED);
                 facingRight = false;

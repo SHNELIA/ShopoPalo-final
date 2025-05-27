@@ -553,12 +553,12 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                 }
 
             // Налаштовуємо Continue на цей найсвіжіший слот
-            StartupHelper.setSelectedSlot(recentSlot);
-            StartupHelper.setContinueGame(true);
-
-            playMenuDialog.dispose();
-            startGame(true);
-        }
+                StartupHelper.setSelectedSlot(recentSlot);
+                StartupHelper.setContinueGame(true);
+                playMenuDialog.dispose();
+                // замість startGame(true):
+                new GameWorldWindow(this);
+            }
 
             int lastSlot = used.stream().max(Integer::compareTo).get();
             StartupHelper.setSelectedSlot(lastSlot);
@@ -602,10 +602,9 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             // Запам’ятовуємо вибір у StartupHelper
             StartupHelper.setSelectedSlot(freeSlot);
             StartupHelper.setContinueGame(false);
-
-            // Закриваємо діалог і запускаємо гру
             playMenuDialog.dispose();
-            startGame(false);
+            // замість startGame(false):
+            new GameWorldWindow(this);
         });
 
         dialogChooseSaveButton.addActionListener(e -> {
