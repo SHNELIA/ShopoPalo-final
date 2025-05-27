@@ -50,7 +50,7 @@ public class Main extends ApplicationAdapter {
     private static final String MAPS_PATH = "Levels/Maps/";
     private static final String GOBLIN_PATH = "Enemies/Goblin/";
     private static final String SPIDER_PATH = "Enemies/Spider/";
-    private static final String WITCH_PATH = "Enemies/Witch/";
+    private static final String WITCH_PATH = "enemies/witch/walk/";
     private static final String FIREBALL_TEXTURE = "fireball.png";
 
     private final List<String> levelPaths = Arrays.asList(
@@ -97,7 +97,8 @@ public class Main extends ApplicationAdapter {
         assetManager.load(IMAGES_PATH + "coin.png", Texture.class);
         assetManager.load(GOBLIN_PATH + "Goblin1.png", Texture.class);
         assetManager.load(SPIDER_PATH + "Spider1.png", Texture.class);
-        assetManager.load(WITCH_PATH + "Witch/Walk/Witch1.png", Texture.class);
+        assetManager.load(WITCH_PATH + "Witch1.png", Texture.class);
+        assetManager.load("Enemies/Witch/walk/Witch1.png", Texture.class);
 
         // Завантаження карт
         assetManager.setLoader(
@@ -171,6 +172,36 @@ public class Main extends ApplicationAdapter {
     /** Основний ігровий цикл: обробка вводу, оновлення й рендер */
     @Override
     public void render() {
+        float delta = Gdx.graphics.getDeltaTime();
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+
+        // 1) Спочатку – лоадер активів і завантаження рівня
+        if (loading) {
+            if (assetManager.update()) {
+                finishLoading();    // ось тут у тебе має викликатися loadLevel(...)
+                loading = false;    // і саме після цього world != null
+            }
+            batch.begin();
+            font.draw(batch, "Loading assets...", WORLD_WIDTH/2f - 60, WORLD_HEIGHT/2f);
+            batch.end();
+            return;
+        }
+
+        // 2) Далі вже впевнися, що world != null, і тільки тут — вся ігрова логіка
+
+        // --- Нанесення урону шипами ---
+        if (world != null) {
+            for (Rectangle spike : world.getSpikeZones()) {
+                if (player.getBounds().overlaps(spike)) {
+                    if (player.getDamageCooldown() <= 0f) {
+                        player.takeDamage(10);
+                        player.setDamageCooldown(1f);
+                    }
+                    break;
+                }
+            }
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             SwingUtilities.invokeLater(() -> {
                 GameMenu menu = StartupHelper.getGameMenu();
@@ -179,7 +210,6 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        float delta = Gdx.graphics.getDeltaTime();
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
         if (loading) {

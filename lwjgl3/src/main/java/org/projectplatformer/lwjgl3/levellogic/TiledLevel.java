@@ -1,5 +1,7 @@
 package org.projectplatformer.lwjgl3.levellogic;
 
+import java.util.List;
+import java.util.ArrayList;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,14 +17,10 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
 import org.projectplatformer.lwjgl3.SaveData;
 import org.projectplatformer.lwjgl3.SaveManager;
 import org.projectplatformer.lwjgl3.StartupHelper;
-import org.projectplatformer.lwjgl3.enemy.BaseEnemy;
-import org.projectplatformer.lwjgl3.enemy.Goblin;
-import org.projectplatformer.lwjgl3.enemy.Skeleton;
-import org.projectplatformer.lwjgl3.enemy.Spider;
+import org.projectplatformer.lwjgl3.enemy.*;
 import org.projectplatformer.lwjgl3.objectslogic.Coin;
 import org.projectplatformer.lwjgl3.objectslogic.Platform;
 import org.projectplatformer.lwjgl3.objectslogic.World;
@@ -38,8 +36,10 @@ public class TiledLevel extends Level {
     private final OrthogonalTiledMapRenderer renderer;
     private final Texture defaultTex;
     private final Texture coinTex;
-    private final List<Rectangle> spikes = new ArrayList<>();
+    private List<Rectangle> spikes = new ArrayList<>();
     private Rectangle exitZone;
+    private static final String WITCH_PATH = "Enemies/Witch/walk/";
+    private final AssetManager assetManager;
 
     public List<Rectangle> getSpikes() {
         return spikes;
@@ -50,11 +50,13 @@ public class TiledLevel extends Level {
     }
 
     public TiledLevel(AssetManager am, SpriteBatch batch, String mapPath) {
-        this.map = am.get(mapPath, TiledMap.class);
-        this.renderer = new OrthogonalTiledMapRenderer(map, 1f, batch);
-        this.defaultTex = am.get("Levels/Images/default.png", Texture.class);
-        this.coinTex = am.get("Levels/Images/coin.png", Texture.class);
+        this.assetManager = am;                    // запам’ятали менеджер
+        this.map          = am.get(mapPath, TiledMap.class);
+        this.renderer     = new OrthogonalTiledMapRenderer(map, 1f, batch);
+        defaultTex        = am.get("Levels/Images/default.png", Texture.class);
+        coinTex           = am.get("Levels/Images/coin.png", Texture.class);
     }
+
 
     /** Створює рівень: спавн, платформи, монети, вороги, тригери, шипи */
     @Override
@@ -132,14 +134,28 @@ public class TiledLevel extends Level {
                 Rectangle r = ((RectangleMapObject) obj).getRectangle();
                 String enemyId = "enemy_" + (idx++);
                 if (save.isEnemyKilled(enemyId)) continue;
+
                 BaseEnemy e;
                 String type = obj.getProperties().get("type", String.class);
                 switch (type) {
-                    case "Goblin":   e = new Goblin(r.x, r.y); break;
-                    case "Spider":   e = new Spider(r.x, r.y); break;
-                    case "Skeleton": e = new Skeleton(r.x, r.y); break;
-                    default:         continue;
+                    case "Goblin":
+                        e = new Goblin(r.x, r.y);
+                        break;
+                    case "Spider":
+                        e = new Spider(r.x, r.y);
+                        break;
+                    case "Skeleton":
+                        e = new Skeleton(r.x, r.y);
+                        break;
+                    case "Witch":
+                        // тепер користуємося полем assetManager:
+                        Texture witchTex = assetManager.get("Enemies/Witch/walk/Witch1.png", Texture.class);
+                        e = new Witch(r.x, r.y, witchTex);
+                        break;
+                    default:
+                        continue;
                 }
+
                 e.setId(enemyId);
                 world.addEnemy(e);
             }
@@ -161,7 +177,8 @@ public class TiledLevel extends Level {
         MapLayer spikesLayer = map.getLayers().get("Spikes");
         if (spikesLayer != null) {
             for (MapObject obj : spikesLayer.getObjects().getByType(RectangleMapObject.class)) {
-                spikes.add(((RectangleMapObject) obj).getRectangle());
+                Rectangle r = ((RectangleMapObject)obj).getRectangle();
+                world.addSpike(r);
             }
         }
     }
