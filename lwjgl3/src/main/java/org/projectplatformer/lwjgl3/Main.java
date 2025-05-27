@@ -36,24 +36,24 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Main extends ApplicationAdapter {
-    private static final float WORLD_WIDTH  = 800f;
+    private static final float WORLD_WIDTH = 800f;
     private static final float WORLD_HEIGHT = 480f;
 
     private static final String IMAGES_PATH = "Levels/Images/";
-    private static final String MAPS_PATH   = "Levels/Maps/";
+    private static final String MAPS_PATH = "Levels/Maps/";
     private static final String GOBLIN_PATH = "Enemies/Goblin/";
     private static final String SPIDER_PATH = "Enemies/Spider/";
-    private final List<String> levelPaths = Arrays.asList(MAPS_PATH + "Level1.tmx",MAPS_PATH + "Level2.tmx",MAPS_PATH + "Level3.tmx",MAPS_PATH + "FinalLevel.tmx",MAPS_PATH + "Shop.tmx");
+    private final List<String> levelPaths = Arrays.asList(MAPS_PATH + "Level1.tmx", MAPS_PATH + "Level2.tmx", MAPS_PATH + "Level3.tmx", MAPS_PATH + "FinalLevel.tmx", MAPS_PATH + "Shop.tmx");
     private int currentLevelIndex = 0;
 
-    private SpriteBatch    batch;
-    private ShapeRenderer  shapeRenderer;
+    private SpriteBatch batch;
+    private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
-    private Viewport       gameViewport;
+    private Viewport gameViewport;
 
-    private BitmapFont     font;
-    private AssetManager   assetManager;
-    private boolean        loading = true;
+    private BitmapFont font;
+    private AssetManager assetManager;
+    private boolean loading = true;
 
     private World world;
     private Player player;
@@ -63,26 +63,26 @@ public class Main extends ApplicationAdapter {
     private static final float FALL_DEATH_DELAY = 0.5f;
 
     // UI
-    private Stage          uiStage;
-    private Skin           skin;
-    private Label          deathLabel;
-    private TextButton     respawnButton;
+    private Stage uiStage;
+    private Skin skin;
+    private Label deathLabel;
+    private TextButton respawnButton;
 
     @Override
     public void create() {
-        batch         = new SpriteBatch();
+        batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        camera        = new OrthographicCamera();
-        gameViewport  = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        camera = new OrthographicCamera();
+        gameViewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
 
-        font         = new BitmapFont();
+        font = new BitmapFont();
         assetManager = new AssetManager();
 
         // Завантажуємо текстури
         assetManager.load(IMAGES_PATH + "default.png", Texture.class);
-        assetManager.load(IMAGES_PATH + "coin.png",    Texture.class);
-        assetManager.load(GOBLIN_PATH + "Goblin1.png",  Texture.class);
-        assetManager.load(SPIDER_PATH + "Spider1.png",  Texture.class);
+        assetManager.load(IMAGES_PATH + "coin.png", Texture.class);
+        assetManager.load(GOBLIN_PATH + "Goblin1.png", Texture.class);
+        assetManager.load(SPIDER_PATH + "Spider1.png", Texture.class);
 
         // Завантажуємо TMX-карти
         assetManager.setLoader(TiledMap.class,
@@ -91,12 +91,22 @@ public class Main extends ApplicationAdapter {
             assetManager.load(path, TiledMap.class);
         }
 
+        if (StartupHelper.isContinueGame()) {
+            int slot = StartupHelper.getSelectedSlot();
+            SaveData data = SaveManager.load(slot);
+            // TODO: розпакувати з data:
+            //   currentLevelIndex = data.getLevelIndex();
+            //   позицію гравця, монети тощо…
+        } else {
+            // new game: currentLevelIndex = 0, SaveData за замовчуванням
+        }
+
         setupUI();
     }
 
     private void setupUI() {
         uiStage = new Stage(new FitViewport(WORLD_WIDTH, WORLD_HEIGHT));
-        skin    = new Skin(Gdx.files.internal("uiskin.json"));
+        skin = new Skin(Gdx.files.internal("uiskin.json"));
 
         deathLabel = new Label("You are dead", skin);
         respawnButton = new TextButton("Respawn", skin);
@@ -120,7 +130,22 @@ public class Main extends ApplicationAdapter {
 
     private void finishLoading() {
         assetManager.finishLoading();
-        loadLevel(currentLevelIndex);
+
+        // Якщо ми продовжуємо гру — спочатку читаємо збереження
+        if (StartupHelper.isContinueGame()) {
+            SaveData data = SaveManager.load(StartupHelper.getSelectedSlot());
+            currentLevelIndex = data.getLevelIndex();
+            loadLevel(currentLevelIndex);
+            // Встановлюємо стан гравця
+            player.setPosition(data.getPlayerX(), data.getPlayerY());
+            player.setCoins(data.getCoins());
+            player.setHealth(data.getHealth());
+        } else {
+            // Нова гра
+            currentLevelIndex = 0;
+            loadLevel(currentLevelIndex);
+        }
+
         loading = false;
     }
 
@@ -147,7 +172,7 @@ public class Main extends ApplicationAdapter {
         if (loading) {
             if (assetManager.update()) finishLoading();
             batch.begin();
-            font.draw(batch, "Loading assets...", WORLD_WIDTH/2f - 60, WORLD_HEIGHT/2f);
+            font.draw(batch, "Loading assets...", WORLD_WIDTH / 2f - 60, WORLD_HEIGHT / 2f);
             batch.end();
             return;
         }
@@ -202,8 +227,8 @@ public class Main extends ApplicationAdapter {
         if (player != null) player.render(batch);
         font.draw(batch,
             "Coins: " + (player != null ? player.getCoins() : 0),
-            camera.position.x + gameViewport.getWorldWidth()/2f - 100,
-            camera.position.y + gameViewport.getWorldHeight()/2f - 20
+            camera.position.x + gameViewport.getWorldWidth() / 2f - 100,
+            camera.position.y + gameViewport.getWorldHeight() / 2f - 20
         );
         batch.end();
 
@@ -218,16 +243,16 @@ public class Main extends ApplicationAdapter {
 
         // Бар здоров’я
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        float barX = camera.position.x - gameViewport.getWorldWidth()/2f + 10;
-        float barY = camera.position.y + gameViewport.getWorldHeight()/2f - 30;
+        float barX = camera.position.x - gameViewport.getWorldWidth() / 2f + 10;
+        float barY = camera.position.y + gameViewport.getWorldHeight() / 2f - 30;
         float barW = 200, barH = 20;
         float pct = player != null
-            ? (float)player.getHealth()/player.getMaxHealth()
+            ? (float) player.getHealth() / player.getMaxHealth()
             : 0f;
-        shapeRenderer.setColor(0.8f,0.1f,0.1f,1f);
+        shapeRenderer.setColor(0.8f, 0.1f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW, barH);
-        shapeRenderer.setColor(0.1f,0.8f,0.1f,1f);
-        shapeRenderer.rect(barX, barY, barW*pct, barH);
+        shapeRenderer.setColor(0.1f, 0.8f, 0.1f, 1f);
+        shapeRenderer.rect(barX, barY, barW * pct, barH);
         shapeRenderer.end();
 
         // UI смерті
@@ -243,14 +268,14 @@ public class Main extends ApplicationAdapter {
     private void centerCameraOnPlayer() {
         if (player == null || tiledLevel == null) return;
         Rectangle b = player.getBounds();
-        float halfW = gameViewport.getWorldWidth()/2f;
-        float halfH = gameViewport.getWorldHeight()/2f;
-        float mapW  = tiledLevel.getMapPixelWidth();
-        float mapH  = tiledLevel.getMapPixelHeight();
+        float halfW = gameViewport.getWorldWidth() / 2f;
+        float halfH = gameViewport.getWorldHeight() / 2f;
+        float mapW = tiledLevel.getMapPixelWidth();
+        float mapH = tiledLevel.getMapPixelHeight();
 
         camera.position.set(
-            MathUtils.clamp(b.x + b.width/2f, halfW,  mapW-halfW),
-            MathUtils.clamp(b.y + b.height/2f, halfH, mapH-halfH),
+            MathUtils.clamp(b.x + b.width / 2f, halfW, mapW - halfW),
+            MathUtils.clamp(b.y + b.height / 2f, halfH, mapH - halfH),
             0f
         );
         camera.update();
@@ -269,13 +294,29 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void dispose() {
+        // 1) Завантажуємо попередній SaveData
+        int slot = StartupHelper.getSelectedSlot();
+        SaveData data = SaveManager.load(slot);
+
+        // 2) Оновлюємо тільки ті поля, що змінилися
+        data.setLevelIndex(currentLevelIndex);
+        data.setPlayerX(player.getBounds().x);
+        data.setPlayerY(player.getBounds().y);
+        data.setCoins(player.getCoins());
+        data.setHealth(player.getHealth());
+        // *** не чіпаємо killedEnemies та collectedCoins — вони вже там ***
+
+        // 3) Перезаписуємо той самий файл
+        SaveManager.save(slot, data);
+
+        // 4) Тепер чистимо ресурси
         batch.dispose();
         shapeRenderer.dispose();
-        if (player != null)    player.dispose();
-        if (tiledLevel != null) tiledLevel.dispose();
+        if (player    != null) player.dispose();
+        if (tiledLevel!= null) tiledLevel.dispose();
         if (assetManager != null) assetManager.dispose();
-        if (uiStage != null)    uiStage.dispose();
-        if (font != null)       font.dispose();
+        if (uiStage      != null) uiStage.dispose();
+        if (font         != null) font.dispose();
     }
 }
 

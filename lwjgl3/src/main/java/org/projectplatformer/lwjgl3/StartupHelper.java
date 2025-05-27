@@ -105,4 +105,23 @@ public class StartupHelper {
         }
         return "";
     }
+
+    /** Обраний слот збереження (1–4) */
+    private static int selectedSlot = 1;
+    /** Якщо true — завантажуємо існуюче збереження */
+    private static boolean continueGame = false;
+
+    public static void setSelectedSlot(int slot) {
+        selectedSlot = slot;
+    }
+    public static int getSelectedSlot() {
+        return selectedSlot;
+    }
+    public static void setContinueGame(boolean flag) {
+        continueGame = flag;
+    }
+    public static boolean isContinueGame() {
+        return continueGame;
+    }
+
 }

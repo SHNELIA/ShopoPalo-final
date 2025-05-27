@@ -3,12 +3,20 @@ package org.projectplatformer.lwjgl3.Menu;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import org.projectplatformer.lwjgl3.Main;
+import org.projectplatformer.lwjgl3.SaveData;
+import org.projectplatformer.lwjgl3.SaveManager;
+import org.projectplatformer.lwjgl3.StartupHelper;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
+
+import java.io.File;
+import java.util.List;
+import javax.swing.JOptionPane;
+
 
 
 public class GameMenu extends JFrame implements ActionListener, ComponentListener {
@@ -521,11 +529,46 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
 
         // Add action listeners
         dialogContinueButton.addActionListener(e -> {
+            List<Integer> used = SaveManager.availableSlots();
+            if (used.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    playMenuDialog,
+                    "Немає жодного збереження!",
+                    "Помилка",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            int recentSlot = used.get(0);
+            long latestTime = -1;
+            for (int slot : used) {
+                File f = new File(SaveManager.SAVE_DIR, "slot" + slot + ".json");
+                if (f.exists()) {
+                    long t = f.lastModified();
+                    if (t > latestTime) {
+                        latestTime = t;
+                        recentSlot = slot;
+                    }
+                }
+
+            // Налаштовуємо Continue на цей найсвіжіший слот
+            StartupHelper.setSelectedSlot(recentSlot);
+            StartupHelper.setContinueGame(true);
+
+            playMenuDialog.dispose();
+            startGame(true);
+        }
+
+            int lastSlot = used.stream().max(Integer::compareTo).get();
+            StartupHelper.setSelectedSlot(lastSlot);
+            StartupHelper.setContinueGame(true);
+
             playMenuDialog.dispose();
             startGame(true);
         });
 
         dialogNewGameButton.addActionListener(e -> {
+            // Питаємо, чи починаємо нову гру
             int choice = JOptionPane.showConfirmDialog(
                 playMenuDialog,
                 LanguageManager.get("newGameConfirm_message"),
@@ -533,17 +576,42 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
             );
+            if (choice != JOptionPane.YES_OPTION) return;
 
-            if (choice == JOptionPane.YES_OPTION) {
-                playMenuDialog.dispose();
-                startGame(false);
+            // Знаходимо перший вільний слот (1–4)
+            List<Integer> used = SaveManager.availableSlots();
+            int freeSlot = -1;
+            for (int i = 1; i <= 4; i++) {
+                if (!used.contains(i)) { freeSlot = i; break; }
             }
+            if (freeSlot == -1) {
+                JOptionPane.showMessageDialog(
+                    playMenuDialog,
+                    "All 4 slots aren't available!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            // Створюємо початкове порожнє збереження в цьому слоті
+            SaveData data = new SaveData();
+            SaveManager.save(freeSlot, data);
+
+            // Запам’ятовуємо вибір у StartupHelper
+            StartupHelper.setSelectedSlot(freeSlot);
+            StartupHelper.setContinueGame(false);
+
+            // Закриваємо діалог і запускаємо гру
+            playMenuDialog.dispose();
+            startGame(false);
         });
 
         dialogChooseSaveButton.addActionListener(e -> {
             playMenuDialog.dispose();
             showSaveSelection();
         });
+
         dialogBackToMainButton.addActionListener(e -> playMenuDialog.dispose());
 
         gbc.gridy = 0;
@@ -579,14 +647,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             LanguageManager.get("startGame_loadingSaved") :
             LanguageManager.get("startGame_startingNew");
 
-//        JOptionPane.showMessageDialog(
-//            null,
-//            message,
-//            LanguageManager.get("startGame_title"),
-//            JOptionPane.INFORMATION_MESSAGE
-//        );
-
-//        new Esc.GameWindow(this);
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
         configuration.setWindowedMode(640, 480);
