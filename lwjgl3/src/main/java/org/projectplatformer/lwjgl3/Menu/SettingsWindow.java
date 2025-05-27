@@ -4,15 +4,13 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-
 public class SettingsWindow extends JFrame {
     private GameMenu gameMenu;
-    private String initialLanguageCode; // Зберігаємо початкову мову
+    private String initialLanguageCode;
     private String selectedLanguageCode;
 
     private static final Color FANTASY_DARK_STONE = new Color(50, 50, 50);
@@ -29,10 +27,8 @@ public class SettingsWindow extends JFrame {
 
     static {
         try {
-            // ВИПРАВЛЕННЯ: Використання SettingsWindow.class замість settingsWindow.class
             InputStream is = SettingsWindow.class.getResourceAsStream("/fonts/MinecraftEven.ttf");
             if (is == null) {
-                System.err.println("Font file not found: /fonts/MinecraftEven.ttf. Using Arial.");
                 FONT_TITLE = new Font("Arial", Font.BOLD, 36);
                 FONT_LABEL = new Font("Arial", Font.PLAIN, 18);
                 FONT_BUTTON = new Font("Arial", Font.BOLD, 22);
@@ -48,7 +44,6 @@ public class SettingsWindow extends JFrame {
                 FONT_SMALL_LABEL = minecraftEven.deriveFont(Font.PLAIN, 12f);
             }
         } catch (FontFormatException | IOException e) {
-            System.err.println("Error loading font. Using Arial. " + e.getMessage());
             FONT_TITLE = new Font("Arial", Font.BOLD, 36);
             FONT_LABEL = new Font("Arial", Font.PLAIN, 18);
             FONT_BUTTON = new Font("Arial", Font.BOLD, 22);
@@ -56,6 +51,7 @@ public class SettingsWindow extends JFrame {
         }
     }
 
+    // Головні компоненти
     private JLabel titleLabel;
     private JLabel musicVolumeLabel;
     private JLabel effectsVolumeLabel;
@@ -67,10 +63,13 @@ public class SettingsWindow extends JFrame {
     private JComboBox<String> languageComboBox;
     private JComboBox<String> resolutionComboBox;
 
-    // ВИПРАВЛЕННЯ: Це повинен бути конструктор, а не метод з void
+    private JCheckBox musicCheckBox;
+    private JCheckBox effectsCheckBox;
+    private JSlider musicSlider;
+    private JSlider effectsSlider;
+
     public SettingsWindow(GameMenu gameMenu) {
         this.gameMenu = gameMenu;
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
         this.initialLanguageCode = LanguageManager.getCurrentLanguageCode();
         this.selectedLanguageCode = initialLanguageCode;
         initializeUI();
@@ -87,7 +86,6 @@ public class SettingsWindow extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
-                // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
                 LanguageManager.setLanguage(initialLanguageCode);
                 gameMenu.showGameMenu();
             }
@@ -114,24 +112,62 @@ public class SettingsWindow extends JFrame {
         gbc.weightx = 0.4;
         gbc.anchor = GridBagConstraints.LINE_START;
 
+        // --- Чекбокси ---
+        JLabel musicEnableLabel = new JLabel("Music On/Off");
+        musicCheckBox = new JCheckBox();
+        musicCheckBox.setBackground(FANTASY_DARK_STONE);
+        musicCheckBox.setSelected(AudioManager.isMusicEnabled());
+        musicCheckBox.addActionListener(e -> {
+            AudioManager.setMusicEnabled(musicCheckBox.isSelected());
+            AudioManager.playClickSound();
+        });
+        addSettingComponent(settingsGridPanel, gbc, musicEnableLabel, musicCheckBox);
+
+        JLabel effectsEnableLabel = new JLabel("Effects On/Off");
+        effectsCheckBox = new JCheckBox();
+        effectsCheckBox.setBackground(FANTASY_DARK_STONE);
+        effectsCheckBox.setSelected(AudioManager.isSoundsEnabled());
+        effectsCheckBox.addActionListener(e -> {
+            AudioManager.setSoundsEnabled(effectsCheckBox.isSelected());
+            AudioManager.playClickSound();
+        });
+        addSettingComponent(settingsGridPanel, gbc, effectsEnableLabel, effectsCheckBox);
+
+        // --- Слайдери гучності ---
         musicVolumeLabel = new JLabel();
-        addSettingComponent(settingsGridPanel, gbc, musicVolumeLabel, createFantasySlider());
+        musicSlider = createFantasySlider();
+        musicSlider.setValue((int) (AudioManager.getMusicVolume() * 100));
+        musicSlider.addChangeListener(e -> AudioManager.setMusicVolume(musicSlider.getValue() / 100f));
+        musicSlider.addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent evt) {
+                AudioManager.playClickSound();
+            }
+        });
+        addSettingComponent(settingsGridPanel, gbc, musicVolumeLabel, musicSlider);
 
         effectsVolumeLabel = new JLabel();
-        addSettingComponent(settingsGridPanel, gbc, effectsVolumeLabel, createFantasySlider());
-        String[] resolutions = {"800x600", "1024x768", "1280x720", "1920x1080 (Full HD)", "Fullscreen"};
+        effectsSlider = createFantasySlider();
+        effectsSlider.setValue((int) (AudioManager.getEffectsVolume() * 100));
+        effectsSlider.addChangeListener(e -> AudioManager.setEffectsVolume(effectsSlider.getValue() / 100f));
+        effectsSlider.addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent evt) {
+                AudioManager.playClickSound();
+            }
+        });
+        addSettingComponent(settingsGridPanel, gbc, effectsVolumeLabel, effectsSlider);
 
+        // --- Роздільна здатність ---
+        String[] resolutions = {"800x600", "1024x768", "1280x720", "1920x1080 (Full HD)", "Fullscreen"};
         windowSizeLabel = new JLabel();
         resolutionComboBox = createFantasyComboBox(resolutions);
         addSettingComponent(settingsGridPanel, gbc, windowSizeLabel, resolutionComboBox);
 
+        // --- Яскравість ---
         brightnessLabel = new JLabel();
         addSettingComponent(settingsGridPanel, gbc, brightnessLabel, createFantasySlider());
 
-        // !! ВАЖЛИВО: Якщо LanguageManager підтримує більше мов,
-        // цей список має бути динамічно сформований на основі доступних мов.
-        // Наприклад: LanguageManager.getAvailableLanguageNames()
-        String[] languages = {"English"}; // Припустимо, що у вас поки тільки англійська
+        // --- Мова ---
+        String[] languages = {"English"};
         languageLabel = new JLabel();
         languageComboBox = createFantasyComboBox(languages);
         languageComboBox.addActionListener(e -> {
@@ -139,16 +175,11 @@ public class SettingsWindow extends JFrame {
             if ("English".equals(selectedLangName)) {
                 selectedLanguageCode = "en";
             }
-            // Додайте тут інші мови, наприклад:
-            // else if ("Українська".equals(selectedLangName)) {
-            //     selectedLanguageCode = "uk";
-            // }
             updateLanguageOnSelection();
         });
         addSettingComponent(settingsGridPanel, gbc, languageLabel, languageComboBox);
 
         JScrollPane scrollPane = new JScrollPane(settingsGridPanel);
-
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createLineBorder(FANTASY_BORDER_COLOR, 3));
@@ -160,10 +191,17 @@ public class SettingsWindow extends JFrame {
         buttonPanel.setBackground(FANTASY_DARK_STONE);
 
         applyButton = createFantasyButton(LanguageManager.get("settingsWindow_apply"));
-        applyButton.addActionListener(e -> applySettings());
+        applyButton.addActionListener(e -> {
+            AudioManager.playClickSound();
+            applySettings();
+        });
         buttonPanel.add(applyButton);
+
         backButton = createFantasyButton(LanguageManager.get("settingsWindow_back"));
-        backButton.addActionListener(e -> goBackToMenu());
+        backButton.addActionListener(e -> {
+            AudioManager.playClickSound();
+            goBackToMenu();
+        });
         buttonPanel.add(backButton);
 
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -198,16 +236,10 @@ public class SettingsWindow extends JFrame {
         applyButton.setText(LanguageManager.get("settingsWindow_apply"));
         backButton.setText(LanguageManager.get("settingsWindow_back"));
 
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
         String currentLangCode = LanguageManager.getCurrentLanguageCode();
         if ("en".equals(currentLangCode)) {
             languageComboBox.setSelectedItem("English");
         }
-        // Додайте інші мовні відповідності, якщо є
-        // else if ("uk".equals(currentLangCode)) {
-        //     languageComboBox.setSelectedItem("Українська");
-        // }
-
         revalidate();
         repaint();
     }
@@ -215,21 +247,24 @@ public class SettingsWindow extends JFrame {
     private void updateLanguageOnSelection() {
         LanguageManager.setLanguage(selectedLanguageCode);
         updateLanguageForCurrentWindow();
-
         if (gameMenu != null) {
-            // Переконайтеся, що gameMenu має публічний метод updateMenuComponentSizes()
-            // або будь-який інший метод для оновлення UI після зміни мови.
             gameMenu.updateMenuComponentSizes();
         }
     }
 
     private void loadCurrentSettings() {
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
+        // Чекбокси:
+        musicCheckBox.setSelected(AudioManager.isMusicEnabled());
+        effectsCheckBox.setSelected(AudioManager.isSoundsEnabled());
+
+        // Слайдери:
+        musicSlider.setValue((int) (AudioManager.getMusicVolume() * 100));
+        effectsSlider.setValue((int) (AudioManager.getEffectsVolume() * 100));
+
         String currentLang = LanguageManager.getCurrentLanguageCode();
         if ("en".equals(currentLang)) {
             languageComboBox.setSelectedItem("English");
         }
-        // Додайте інші мовні відповідності, якщо є
 
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         if (gd.getFullScreenWindow() == gameMenu) {
@@ -246,7 +281,6 @@ public class SettingsWindow extends JFrame {
                 }
             }
             if (!found) {
-                // Встановлення резолюції за замовчуванням, якщо поточна не знайдена в списку
                 resolutionComboBox.setSelectedItem("1024x768");
             }
         }
@@ -260,14 +294,11 @@ public class SettingsWindow extends JFrame {
         slider.setMinorTickSpacing(5);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
+        slider.setLabelTable(slider.createStandardLabels(25));
         slider.setFont(FONT_SMALL_LABEL);
         slider.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Встановлення UI менеджерів для повзунка, щоб контролювати кольори
         UIManager.put("Slider.trackForeground", FANTASY_GREY_STONE_LIGHTER);
         UIManager.put("Slider.thumbForeground", FANTASY_BRONZE_ACCENT);
-        // Обов'язково викликати updateUI() для застосування змін, якщо ви змінюєте UIManager
-        // slider.updateUI(); // Можливо, знадобиться, якщо зміни не застосовуються одразу
         return slider;
     }
 
@@ -312,8 +343,7 @@ public class SettingsWindow extends JFrame {
                 g2.dispose();
             }
             @Override
-            protected void paintBorder(Graphics g) {
-            }
+            protected void paintBorder(Graphics g) {}
         };
 
         button.setFont(FONT_BUTTON);
@@ -328,8 +358,15 @@ public class SettingsWindow extends JFrame {
     }
 
     private void applySettings() {
+        AudioManager.setMusicEnabled(musicCheckBox.isSelected());
+        AudioManager.setSoundsEnabled(effectsCheckBox.isSelected());
+        AudioManager.setMusicVolume(musicSlider.getValue() / 100f);
+        AudioManager.setEffectsVolume(effectsSlider.getValue() / 100f);
+
+        // Збереження інших налаштувань (резолюція, мова)
         LanguageManager.setLanguage(selectedLanguageCode);
         applyResolutionSettings();
+
         JOptionPane.showMessageDialog(this,
             LanguageManager.get("settingsWindow_settingsApplied"),
             LanguageManager.get("settingsWindow_saved"),
@@ -337,22 +374,21 @@ public class SettingsWindow extends JFrame {
 
         goBackToMenu();
     }
+
     private void applyResolutionSettings() {
         String selectedResolution = (String) resolutionComboBox.getSelectedItem();
         if (selectedResolution == null) return;
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-        // Приховати, звільнити ресурси та скинути undecorated перед застосуванням нових налаштувань
         gameMenu.setVisible(false);
         gameMenu.dispose();
-        gameMenu.setUndecorated(false); // Завжди скидати, щоб уникнути проблем, якщо попередньо був повноекранний режим
+        gameMenu.setUndecorated(false);
 
         if (selectedResolution.equals("Fullscreen")) {
             gameMenu.setUndecorated(true);
             if (gd.isFullScreenSupported()) {
                 gd.setFullScreenWindow(gameMenu);
             } else {
-                // Якщо повноекранний режим не підтримується, максимізуємо вікно
                 gameMenu.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
@@ -361,14 +397,14 @@ public class SettingsWindow extends JFrame {
             try {
                 String[] dimensions = selectedResolution.split("x");
                 int width = Integer.parseInt(dimensions[0]);
-                int height = Integer.parseInt(dimensions[1].split(" ")[0]); // Обробка "1920x1080 (Full HD)"
+                int height = Integer.parseInt(dimensions[1].split(" ")[0]);
                 gameMenu.setPreferredSize(new Dimension(width, height));
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 System.err.println("Invalid resolution format: " + selectedResolution + ". Error: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Failed to apply resolution: " + selectedResolution + "\nUsing default 1024x768.", "Error", JOptionPane.ERROR_MESSAGE);
-                gameMenu.setPreferredSize(new Dimension(1024, 768)); // Повернення до розміру за замовчуванням
+                gameMenu.setPreferredSize(new Dimension(1024, 768));
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
             }
@@ -379,29 +415,22 @@ public class SettingsWindow extends JFrame {
         gameMenu.repaint();
     }
 
-
     private void goBackToMenu() {
         this.dispose();
         gameMenu.showGameMenu();
     }
 
     public static void main(String[] args) {
-        // Це тестовий блок для запуску вікна налаштувань окремо.
-        // У реальній грі, ви будете викликати конструктор SettingsWindow з вашого GameMenu.
         SwingUtilities.invokeLater(() -> {
             try {
-                // Рекомендовано для кращого рендерингу шрифтів на деяких системах
                 System.setProperty("awt.useSystemAAFontSettings", "on");
                 System.setProperty("swing.aatext", "true");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            // Створення фіктивного GameMenu для тестування
-            // У реальній грі, ви передасте сюди справжній об'єкт GameMenu
             GameMenu dummyMenu = new GameMenu();
-            dummyMenu.setVisible(false); // Приховати фіктивне меню, якщо не потрібно його показувати
-            new SettingsWindow(dummyMenu); // Виклик конструктора
+            dummyMenu.setVisible(false);
+            new SettingsWindow(dummyMenu);
         });
     }
 }

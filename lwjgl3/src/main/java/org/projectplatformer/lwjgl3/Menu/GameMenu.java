@@ -640,6 +640,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     }
 
     public void startGame(boolean continueGame) {
+        AudioManager.stopMenuMusic();
         this.setVisible(false);
 
 
