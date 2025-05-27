@@ -464,8 +464,18 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                         recentSlot = slot;
                     }
                 }
+
+
+                // Налаштовуємо Continue на цей найсвіжіший слот
+                StartupHelper.setSelectedSlot(recentSlot);
+                StartupHelper.setContinueGame(true);
+
+                playMenuDialog.dispose();
+                startGame(true);
             }
-            StartupHelper.setSelectedSlot(recentSlot);
+
+            int lastSlot = used.stream().max(Integer::compareTo).get();
+            StartupHelper.setSelectedSlot(lastSlot);
             StartupHelper.setContinueGame(true);
 
             playMenuDialog.dispose();
@@ -553,7 +563,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     }
 
     public void startGame(boolean continueGame) {
-        AudioManager.stopMenuMusic();
         this.setVisible(false);
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();

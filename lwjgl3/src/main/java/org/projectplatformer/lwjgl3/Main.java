@@ -43,6 +43,8 @@ public class Main extends ApplicationAdapter {
     private static final String MAPS_PATH = "Levels/Maps/";
     private static final String GOBLIN_PATH = "Enemies/Goblin/";
     private static final String SPIDER_PATH = "Enemies/Spider/";
+    private static final String WITCH_PATH   = "Enemies/Witch/";
+    private static final String FIREBALL_TEXTURE = "fireball.png";
     private final List<String> levelPaths = Arrays.asList(MAPS_PATH + "Level1.tmx", MAPS_PATH + "Level2.tmx", MAPS_PATH + "Level3.tmx", MAPS_PATH + "FinalLevel.tmx", MAPS_PATH + "Shop.tmx");
     private int currentLevelIndex = 0;
 
@@ -61,7 +63,6 @@ public class Main extends ApplicationAdapter {
 
     private float fallTimer = 0f;
     private static final float FALL_DEATH_DELAY = 0.5f;
-
 
     // UI
     private Stage uiStage;
@@ -84,6 +85,7 @@ public class Main extends ApplicationAdapter {
         assetManager.load(IMAGES_PATH + "coin.png", Texture.class);
         assetManager.load(GOBLIN_PATH + "Goblin1.png", Texture.class);
         assetManager.load(SPIDER_PATH + "Spider1.png", Texture.class);
+        assetManager.load(WITCH_PATH + "Witch/Walk/Witch1.png",   Texture.class);
 
         // Завантажуємо TMX-карти
         assetManager.setLoader(TiledMap.class,
@@ -170,60 +172,29 @@ public class Main extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
-        // 1) Поки ассети завантажуються – показуємо прогрес і не чіпаємо tiledLevel
         if (loading) {
-            if (assetManager.update()) {
-                finishLoading();
-            }
+            if (assetManager.update()) finishLoading();
             batch.begin();
-            font.draw(batch,
-                "Loading assets... " + (int)(assetManager.getProgress() * 100) + "%",
-                WORLD_WIDTH / 2f - 60,
-                WORLD_HEIGHT / 2f
-            );
+            font.draw(batch, "Loading assets...", WORLD_WIDTH / 2f - 60, WORLD_HEIGHT / 2f);
             batch.end();
             return;
         }
 
-        // 2) Захист: якщо рівень ще не створений, виходимо
-        if (tiledLevel == null) {
-            return;
-        }
-
-        // 3) Перевірка зони виходу на початку кадру
-        Rectangle exit = tiledLevel.getExitZone();
-        if (exit != null && player.getBounds().overlaps(exit)) {
-            currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
-            loadLevel(currentLevelIndex);
-            return;
-        }
-
-        // 4) Дебаг: перемикання рівня клавішею N
+        // Debug: перемикання рівня
         if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
             currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
             loadLevel(currentLevelIndex);
         }
 
-
-        if (player.isAlive()) {
-            for (Rectangle spike : tiledLevel.getSpikes()) {
-                if (player.getSpikeCooldown() <= 0f && player.getBounds().overlaps(spike)) {
-                    player.takeDamage(10);  // наносимо 10 урону
-                    player.setSpikeCooldown(1f);  // затримка 1 секунда
-                    break;
-                }
-            }
-            player.update(delta, world.getPlatformBounds(), world.getEnemies());
-        }
-
-
         // Оновлюємо гравця
         if (player.isAlive()) {
             player.update(delta, world.getPlatformBounds(), world.getEnemies());
         }
+
+        // Оновлюємо ворогів
         world.update(delta, player, world.getPlatformBounds());
 
-        // 6) Збір монет
+        // Збір монет
         Iterator<GameObject> it = world.getObjects().iterator();
         while (it.hasNext()) {
             GameObject obj = it.next();
@@ -234,7 +205,8 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-        // 7) Перевірка падіння
+
+        // Перевірка падіння
         Rectangle pb = player.getBounds();
         if (pb.y + pb.height < 0) {
             fallTimer += delta;
@@ -245,15 +217,13 @@ public class Main extends ApplicationAdapter {
             fallTimer = 0f;
         }
 
-        // 8) Центрування камери
         centerCameraOnPlayer();
 
-        // 9) Рендер карти
+        // Рендер мапи та спрайтів
         gameViewport.apply(false);
         camera.update();
         tiledLevel.renderMap(camera);
 
-        // 10) Рендер об’єктів і HUD
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         world.render(batch);
@@ -265,7 +235,7 @@ public class Main extends ApplicationAdapter {
         );
         batch.end();
 
-        // 11) Дебаг-хітбокси
+        // Дебаг-хітбокси
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         if (player != null) player.renderHitbox(shapeRenderer);
@@ -274,19 +244,21 @@ public class Main extends ApplicationAdapter {
         }
         shapeRenderer.end();
 
-        // 12) Бар здоров’я
+        // Бар здоров’я
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         float barX = camera.position.x - gameViewport.getWorldWidth() / 2f + 10;
         float barY = camera.position.y + gameViewport.getWorldHeight() / 2f - 30;
         float barW = 200, barH = 20;
-        float pct = player != null ? (float) player.getHealth() / player.getMaxHealth() : 0f;
+        float pct = player != null
+            ? (float) player.getHealth() / player.getMaxHealth()
+            : 0f;
         shapeRenderer.setColor(0.8f, 0.1f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW, barH);
         shapeRenderer.setColor(0.1f, 0.8f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW * pct, barH);
         shapeRenderer.end();
 
-        // 13) UI смерті
+        // UI смерті
         if (player != null && !player.isAlive()) {
             if (Gdx.input.getInputProcessor() != uiStage) {
                 Gdx.input.setInputProcessor(uiStage);
@@ -295,7 +267,6 @@ public class Main extends ApplicationAdapter {
             uiStage.draw();
         }
     }
-
 
     private void centerCameraOnPlayer() {
         if (player == null || tiledLevel == null) return;

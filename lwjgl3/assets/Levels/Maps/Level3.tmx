@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="25" tilewidth="32" tileheight="32" infinite="0" nextlayerid="10" nextobjectid="4">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="25" tilewidth="32" tileheight="32" infinite="0" nextlayerid="11" nextobjectid="6">
  <tileset firstgid="1" source="../Tilesets/Assets.tsx"/>
  <tileset firstgid="1289" source="../Tilesets/Tiles (2).tsx"/>
  <tileset firstgid="1469" source="../Tilesets/night-town-background-sky.tsx"/>
@@ -36,6 +36,13 @@
 1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1484,1485,1486,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1481,1482,1483,1486,1486,1486,1486,1486,1486,1486,1486,1486
 </data>
  </layer>
+ <objectgroup id="10" name="triggers">
+  <object id="5" name="exit" x="3814.5" y="673.5" width="24" height="31.5">
+   <properties>
+    <property name="type" value="exit"/>
+   </properties>
+  </object>
+ </objectgroup>
  <layer id="3" name="background" width="120" height="25">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
