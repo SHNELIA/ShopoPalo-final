@@ -173,15 +173,23 @@ import java.awt.event.*;
             String command = e.getActionCommand();
             if (command.startsWith("LEVEL_")) {
                 String levelNum = command.substring(6);
+
+                // 1. Перемикаємо музику рівня
+                AudioManager.playLevelMusic("level" + levelNum);
+
+                // 2. (Тут — твоя логіка запуску рівня або просто повідомлення)
                 JOptionPane.showMessageDialog(this, LanguageManager.get("levelsWindow_startingLevel") + " " + levelNum);
 
             } else if (e.getSource() == backButton) {
-                this.dispose(); // Закриваємо LevelsWindow
+                this.dispose();
                 if (parentWindow != null) {
-                    parentWindow.setVisible(true); // Показуємо GameWorldWindow знову
+                    parentWindow.setVisible(true);
                 }
+                // Повертаємось у меню — перемикаємо музику назад на меню
+                AudioManager.playMenuMusic();
             }
         }
+
 
         private JButton createFantasyButton(String text, Color bgColor, Font font) {
             FantasyButton button = new FantasyButton(text, bgColor, font);
