@@ -222,9 +222,10 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         add(mainPanel);
         pack();
         setLocationRelativeTo(null);
+        setVisible(true);
 
-        // Початкове оновлення розмірів компонентів
-        updateMenuComponentSizes();
+        // Ось сюди—реєструємо екземпляр меню в StartupHelper:
+        StartupHelper.setGameMenu(this);
     }
 
     // Метод для динамічного оновлення розмірів компонентів головного меню та діалогу

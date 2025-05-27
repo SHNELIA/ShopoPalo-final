@@ -111,17 +111,34 @@ public class StartupHelper {
     /** Якщо true — завантажуємо існуюче збереження */
     private static boolean continueGame = false;
 
+    // --- Додаємо сюди нові поля/геттери/сеттери ---
+    /** Збережений екземпляр головного меню Swing */
+    private static org.projectplatformer.lwjgl3.Menu.GameMenu gameMenu;
+
+    /** Встановити поточний екземпляр головного меню */
+    public static void setGameMenu(org.projectplatformer.lwjgl3.Menu.GameMenu gm) {
+        gameMenu = gm;
+    }
+
+    /** Отримати екземпляр головного меню */
+    public static org.projectplatformer.lwjgl3.Menu.GameMenu getGameMenu() {
+        return gameMenu;
+    }
+    // --- Кінець доданого коду ---
+
     public static void setSelectedSlot(int slot) {
         selectedSlot = slot;
     }
+
     public static int getSelectedSlot() {
         return selectedSlot;
     }
+
     public static void setContinueGame(boolean flag) {
         continueGame = flag;
     }
+
     public static boolean isContinueGame() {
         return continueGame;
     }
-
 }

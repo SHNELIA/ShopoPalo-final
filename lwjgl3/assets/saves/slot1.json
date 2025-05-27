@@ -1,1 +1,1 @@
-{playerX:3637.0999,playerY:96,health:4,coins:1,killedEnemies:{class:java.util.HashSet,items:[enemy_0,enemy_2]},collectedCoins:{class:java.util.HashSet,items:[coin_2,coin_0]}}
+{playerX:12.6667,playerY:96,killedEnemies:{class:java.util.HashSet,items:[enemy_0,enemy_2]},collectedCoins:{class:java.util.HashSet,items:[coin_2,coin_0]}}

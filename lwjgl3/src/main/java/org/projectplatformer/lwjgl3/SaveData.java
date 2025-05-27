@@ -3,46 +3,40 @@ package org.projectplatformer.lwjgl3;
 import java.util.HashSet;
 import java.util.Set;
 
-
 /**
  * Дані збереження гри: стан рівня, позиція гравця, здоров’я, монети,
- * зібрані та придбані предмети, розблокована зброя та обладнана зброя.
+ * зібрані вороги і монети, предмети та зброя.
  */
 public class SaveData {
-    // Стан рівня та позиції гравця
     private int levelIndex;
     private float playerX;
     private float playerY;
     private int health;
-
-    // Монети
     private int coins;
 
-    /** Ідентифікатори вбитих ворогів */
-    private Set<String> killedEnemies = new HashSet<>();
-    /** Ідентифікатори зібраних монет */
-    private Set<String> collectedCoins = new HashSet<>();
-
-    // Предмети та зброя
+    private Set<String> killedEnemies;
+    private Set<String> collectedCoins;
     private Set<String> collectedItems;
     private Set<String> purchasedItems;
     private Set<String> unlockedWeapons;
     private String equippedWeaponId;
 
+    /** Початкові значення збереження */
     public SaveData() {
-        // Початкові значення
-        this.levelIndex = 0;
-        this.playerX = 0f;
-        this.playerY = 0f;
-        this.health = 100;
-        this.coins = 0;
-        this.collectedItems   = new HashSet<>();
-        this.purchasedItems   = new HashSet<>();
-        this.unlockedWeapons  = new HashSet<>();
-        this.equippedWeaponId = null;
+        levelIndex = 0;
+        playerX = 0f;
+        playerY = 0f;
+        health = 100;
+        coins = 0;
+        killedEnemies = new HashSet<>();
+        collectedCoins = new HashSet<>();
+        collectedItems = new HashSet<>();
+        purchasedItems = new HashSet<>();
+        unlockedWeapons = new HashSet<>();
+        equippedWeaponId = null;
     }
 
-    // ===== KILLED ENEMIES =====
+    // ===== Вбиті вороги =====
     public void markEnemyKilled(String enemyId) {
         killedEnemies.add(enemyId);
     }
@@ -53,7 +47,7 @@ public class SaveData {
         return killedEnemies;
     }
 
-    // ===== COLLECTED COINS =====
+    // ===== Зібрані монети =====
     public void markCoinCollected(String coinId) {
         collectedCoins.add(coinId);
     }
@@ -64,7 +58,7 @@ public class SaveData {
         return collectedCoins;
     }
 
-    // ===== Level Index =====
+    // ===== Рівень =====
     public int getLevelIndex() {
         return levelIndex;
     }
@@ -72,7 +66,7 @@ public class SaveData {
         this.levelIndex = levelIndex;
     }
 
-    // ===== Position =====
+    // ===== Позиція =====
     public float getPlayerX() {
         return playerX;
     }
@@ -86,7 +80,7 @@ public class SaveData {
         this.playerY = playerY;
     }
 
-    // ===== Health =====
+    // ===== Здоров’я =====
     public int getHealth() {
         return health;
     }
@@ -94,7 +88,7 @@ public class SaveData {
         this.health = health;
     }
 
-    // ===== Coins =====
+    // ===== Монети =====
     public int getCoins() {
         return coins;
     }
@@ -102,13 +96,13 @@ public class SaveData {
         this.coins = coins;
     }
     public void addCoins(int amount) {
-        this.coins += amount;
+        coins += amount;
     }
     public void spendCoins(int amount) {
-        this.coins = Math.max(0, this.coins - amount);
+        coins = Math.max(0, coins - amount);
     }
 
-    // ===== Collected Items =====
+    // ===== Зібрані предмети =====
     public void collectItem(String itemId) {
         collectedItems.add(itemId);
     }
@@ -119,7 +113,7 @@ public class SaveData {
         return collectedItems;
     }
 
-    // ===== Purchased Items =====
+    // ===== Придбані предмети =====
     public void purchaseItem(String itemId) {
         purchasedItems.add(itemId);
     }
@@ -130,41 +124,37 @@ public class SaveData {
         return purchasedItems;
     }
 
-    // ===== Weapons =====
-    /** Розблокувати (купити) зброю */
+    // ===== Зброя =====
     public void unlockWeapon(String weaponId) {
         unlockedWeapons.add(weaponId);
     }
-    /** Чи розблокована зброя */
     public boolean isWeaponUnlocked(String weaponId) {
         return unlockedWeapons.contains(weaponId);
     }
-    /** Повертає набір усіх розблокованих зброї */
     public Set<String> getUnlockedWeapons() {
         return unlockedWeapons;
     }
-    /** Обрати поточну зброю (лише з уже розблокованих) */
     public void equipWeapon(String weaponId) {
-        if (isWeaponUnlocked(weaponId)) {
-            this.equippedWeaponId = weaponId;
+        if (unlockedWeapons.contains(weaponId)) {
+            equippedWeaponId = weaponId;
         }
     }
-    /** Яка зброя зараз обрана? */
     public String getEquippedWeapon() {
         return equippedWeaponId;
     }
 
-    // ===== Reset Helpers =====
-    /** Повністю очистити всі дані збереження */
+    // ===== Скидання збереження =====
     public void reset() {
-        this.levelIndex = 0;
-        this.playerX = 0f;
-        this.playerY = 0f;
-        this.health = 100;
-        this.coins = 0;
-        this.collectedItems.clear();
-        this.purchasedItems.clear();
-        this.unlockedWeapons.clear();
-        this.equippedWeaponId = null;
+        levelIndex = 0;
+        playerX = 0f;
+        playerY = 0f;
+        health = 100;
+        coins = 0;
+        killedEnemies.clear();
+        collectedCoins.clear();
+        collectedItems.clear();
+        purchasedItems.clear();
+        unlockedWeapons.clear();
+        equippedWeaponId = null;
     }
 }
