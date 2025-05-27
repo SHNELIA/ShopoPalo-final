@@ -1,6 +1,7 @@
 package org.projectplatformer.lwjgl3.weapon;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import org.projectplatformer.lwjgl3.enemy.BaseEnemy;
 import org.projectplatformer.lwjgl3.player.Player;
