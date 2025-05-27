@@ -1,5 +1,6 @@
 package org.projectplatformer.lwjgl3.Menu;
 
+import org.projectplatformer.lwjgl3.SaveData;
 import org.projectplatformer.lwjgl3.StartupHelper;
 import org.projectplatformer.lwjgl3.SaveManager;
 
@@ -69,13 +70,17 @@ public class SaveSelectionDialog extends JDialog {
                 FANTASY_BROWN_LEATHER);
             saveButton.addActionListener(e -> {
                 AudioManager.playClickSound();
-                // встановлюємо вибір слоту та режим Continue
                 StartupHelper.setSelectedSlot(slotNumber);
                 StartupHelper.setContinueGame(true);
-                // закриваємо діалог та головне меню
+
+
+                SaveData data = SaveManager.load(slotNumber);
+                int currentLevel = data.getCurrentLevel();
+                String levelName = "level" + currentLevel;
+                AudioManager.playLevelMusic(levelName);
+
                 dispose();
                 parentMenu.setVisible(false);
-                // запускаємо гру
                 parentMenu.startGame(true);
             });
             saveButtons[i] = saveButton;
