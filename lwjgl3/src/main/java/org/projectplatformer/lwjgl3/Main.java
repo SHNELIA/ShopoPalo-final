@@ -170,19 +170,40 @@ public class Main extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
+        // 1) Поки ассети завантажуються – показуємо прогрес і не чіпаємо tiledLevel
         if (loading) {
-            if (assetManager.update()) finishLoading();
+            if (assetManager.update()) {
+                finishLoading();
+            }
             batch.begin();
-            font.draw(batch, "Loading assets...", WORLD_WIDTH / 2f - 60, WORLD_HEIGHT / 2f);
+            font.draw(batch,
+                "Loading assets... " + (int)(assetManager.getProgress() * 100) + "%",
+                WORLD_WIDTH / 2f - 60,
+                WORLD_HEIGHT / 2f
+            );
             batch.end();
             return;
         }
 
-        // Debug: перемикання рівня
+        // 2) Захист: якщо рівень ще не створений, виходимо
+        if (tiledLevel == null) {
+            return;
+        }
+
+        // 3) Перевірка зони виходу на початку кадру
+        Rectangle exit = tiledLevel.getExitZone();
+        if (exit != null && player.getBounds().overlaps(exit)) {
+            currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
+            loadLevel(currentLevelIndex);
+            return;
+        }
+
+        // 4) Дебаг: перемикання рівня клавішею N
         if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
             currentLevelIndex = (currentLevelIndex + 1) % levelPaths.size();
             loadLevel(currentLevelIndex);
         }
+
 
         if (player.isAlive()) {
             for (Rectangle spike : tiledLevel.getSpikes()) {
@@ -200,11 +221,9 @@ public class Main extends ApplicationAdapter {
         if (player.isAlive()) {
             player.update(delta, world.getPlatformBounds(), world.getEnemies());
         }
-
-        // Оновлюємо ворогів
         world.update(delta, player, world.getPlatformBounds());
 
-        // Збір монет
+        // 6) Збір монет
         Iterator<GameObject> it = world.getObjects().iterator();
         while (it.hasNext()) {
             GameObject obj = it.next();
@@ -215,8 +234,7 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-
-        // Перевірка падіння
+        // 7) Перевірка падіння
         Rectangle pb = player.getBounds();
         if (pb.y + pb.height < 0) {
             fallTimer += delta;
@@ -227,13 +245,15 @@ public class Main extends ApplicationAdapter {
             fallTimer = 0f;
         }
 
+        // 8) Центрування камери
         centerCameraOnPlayer();
 
-        // Рендер мапи та спрайтів
+        // 9) Рендер карти
         gameViewport.apply(false);
         camera.update();
         tiledLevel.renderMap(camera);
 
+        // 10) Рендер об’єктів і HUD
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         world.render(batch);
@@ -245,7 +265,7 @@ public class Main extends ApplicationAdapter {
         );
         batch.end();
 
-        // Дебаг-хітбокси
+        // 11) Дебаг-хітбокси
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         if (player != null) player.renderHitbox(shapeRenderer);
@@ -254,21 +274,19 @@ public class Main extends ApplicationAdapter {
         }
         shapeRenderer.end();
 
-        // Бар здоров’я
+        // 12) Бар здоров’я
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         float barX = camera.position.x - gameViewport.getWorldWidth() / 2f + 10;
         float barY = camera.position.y + gameViewport.getWorldHeight() / 2f - 30;
         float barW = 200, barH = 20;
-        float pct = player != null
-            ? (float) player.getHealth() / player.getMaxHealth()
-            : 0f;
+        float pct = player != null ? (float) player.getHealth() / player.getMaxHealth() : 0f;
         shapeRenderer.setColor(0.8f, 0.1f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW, barH);
         shapeRenderer.setColor(0.1f, 0.8f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW * pct, barH);
         shapeRenderer.end();
 
-        // UI смерті
+        // 13) UI смерті
         if (player != null && !player.isAlive()) {
             if (Gdx.input.getInputProcessor() != uiStage) {
                 Gdx.input.setInputProcessor(uiStage);
@@ -277,6 +295,7 @@ public class Main extends ApplicationAdapter {
             uiStage.draw();
         }
     }
+
 
     private void centerCameraOnPlayer() {
         if (player == null || tiledLevel == null) return;

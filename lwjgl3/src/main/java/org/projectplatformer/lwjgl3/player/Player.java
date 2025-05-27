@@ -85,10 +85,18 @@ public class Player {
     private int coins = 0;
     private int jumpCount = 0;
 
+    private float stateTime = 0f;                   // загальний лічильник часу
+    private float lastTapTimeLeft  = -Float.MAX_VALUE;
+    private float lastTapTimeRight = -Float.MAX_VALUE;
+
+    private static final float DOUBLE_TAP_THRESHOLD = 0.25f;
+
+    private static final float DASH_DURATION  = 0.3f;
+    private static final float DASH_COOLDOWN  = 1f;
 
     public Player(float x, float y) {
         Rectangle bounds = new Rectangle(x, y, 32, 52);
-        physics = new PhysicsComponent(bounds, -1000f, -1000f, 0.9f, 16f, 200f);
+        physics = new PhysicsComponent(bounds, -1000f, -1000f, 0.9f, 2f, 200f);
         animationManager = new AnimationManager();
         currentWeapon = new SwordWeapon();
     }
@@ -134,7 +142,9 @@ public class Player {
         }
 
         // --- Таймери ---
+        stateTime += delta;
         damageCooldown    = Math.max(0f, damageCooldown - delta);
+        dashTimer         = Math.max(0f, dashTimer         - delta);
         dashCooldownTimer = Math.max(0f, dashCooldownTimer - delta);
         attackCooldown    = Math.max(0f, attackCooldown - delta);
         spikeCooldown = Math.max(0f, spikeCooldown - delta);
@@ -187,14 +197,47 @@ public class Player {
         Rectangle b  = physics.getBounds();
         float    velY = physics.getVelocityY();
 
-        // --- Dash і рух ---
+        float now = Gdx.graphics.getDeltaTime();
+// але краще: вносимо в update(float delta,…) параметр delta, тому
+// використаємо його для зменшення лічильників:
+        dashCooldownTimer = Math.max(0f, dashCooldownTimer - delta);
+        dashTimer         = Math.max(0f, dashTimer         - delta);
+
+        // ==== Подвійний тап для дешу ====
+        if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+            // якщо натиск послідовний і cooldown завершено — починаємо деш
+            if (stateTime - lastTapTimeLeft < DOUBLE_TAP_THRESHOLD && dashCooldownTimer <= 0f) {
+                dashDirection     = -1;
+                dashTimer         = DASH_DURATION;
+                dashCooldownTimer = DASH_COOLDOWN;
+            }
+            // оновлюємо час останнього тапу
+            lastTapTimeLeft = stateTime;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
+            if (stateTime - lastTapTimeRight < DOUBLE_TAP_THRESHOLD && dashCooldownTimer <= 0f) {
+                dashDirection     = 1;
+                dashTimer         = DASH_DURATION;
+                dashCooldownTimer = DASH_COOLDOWN;
+            }
+            lastTapTimeRight = stateTime;
+        }
+
+
+// Якщо ми в деші — ігноруємо звичайний рух, а рушимо на dashDirection
         if (dashTimer > 0f) {
             physics.setVelocityX(dashDirection * DASH_SPEED);
-            dashTimer -= delta;
         } else {
-            if (Gdx.input.isKeyPressed(Input.Keys.A)) { physics.setVelocityX(-MOVE_SPEED); facingRight = false; }
-            else if (Gdx.input.isKeyPressed(Input.Keys.D)) { physics.setVelocityX(MOVE_SPEED); facingRight = true; }
-            else physics.setVelocityX(0f);
+            // звичайний рух
+            if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+                physics.setVelocityX(-MOVE_SPEED);
+                facingRight = false;
+            } else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+                physics.setVelocityX(MOVE_SPEED);
+                facingRight = true;
+            } else {
+                physics.setVelocityX(0f);
+            }
         }
 
         // --- Wall slide / jump ---
@@ -239,7 +282,35 @@ public class Player {
         }
 
         physics.tryStepUp(platforms, physics.getVelocityX() >= 0f);
+
+        float oldY   = b.y;
+        float oldTop = oldY + b.height;
+
+        // 2) оновлюємо фізику (гравітація + колізії внизу й збоку)
         physics.update(delta, platforms);
+
+        // 3) тепер ловимо колізію зверху
+        b = physics.getBounds();
+        float newY   = b.y;
+        float newTop = newY + b.height;
+
+        if (velY > 0f) {  // рухаємося вгору
+            for (Rectangle p : platforms) {
+                float pBottom = p.y;
+                // якщо зверху перетнули нижню грань платформи
+                if (oldTop <= pBottom
+                    && newTop  >= pBottom
+                    && b.x + b.width  > p.x
+                    && b.x           < p.x + p.width) {
+                    // притиснути голову до низу платформи
+                    b.y = pBottom - b.height;
+                    physics.setVelocityY(0f);
+                    break;
+                }
+            }
+        }
+
+
 
         // --- Зміна зброї ---
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) currentWeapon = new SwordWeapon();
