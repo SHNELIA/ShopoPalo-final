@@ -18,11 +18,11 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
     private static final float MOVE_SPEED = 80f;
 
     // --- Атака списом ---
-    private static final float SPEAR_MAX_LENGTH = 50f;
+    private static final float SPEAR_MAX_LENGTH = 40f;
     private static final float SPEAR_WIDTH = 8f;
-    private static final float ATTACK_RANGE = 40f;
+    private static final float ATTACK_RANGE = 60f;
     private static final float ATTACK_DURATION = 0.3f;
-    private static final float ATTACK_COOLDOWN = 1.2f;
+    private static final float ATTACK_COOLDOWN = 0.8f;
     private static final int ATTACK_DAMAGE = 12;
 
     private static final float STEP_UP_SPEED = 400f;

@@ -3,9 +3,7 @@ package org.projectplatformer.lwjgl3.levellogic;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapProperties;
@@ -15,6 +13,9 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 import org.projectplatformer.lwjgl3.SaveData;
 import org.projectplatformer.lwjgl3.SaveManager;
 import org.projectplatformer.lwjgl3.StartupHelper;
@@ -31,18 +32,22 @@ public class TiledLevel extends Level {
     private final OrthogonalTiledMapRenderer renderer;
     private final Texture defaultTex, coinTex;
 
+    /** Примірники ворогів підтягують свої власні текстури в конструкторі */
+    // Зона виходу:
+    private Rectangle exitZone;
+
     public TiledLevel(AssetManager am, SpriteBatch batch, String mapPath) {
         this.map = am.get(mapPath, TiledMap.class);
         this.renderer = new OrthogonalTiledMapRenderer(map, 1f, batch);
-        defaultTex = am.get("Levels/Images/default.png", Texture.class);
-        coinTex = am.get("Levels/Images/coin.png", Texture.class);
+        this.defaultTex = am.get("Levels/Images/default.png", Texture.class);
+        this.coinTex    = am.get("Levels/Images/coin.png",    Texture.class);
     }
 
     @Override
     public void createLevel(World world) {
+        // --- базова логіка створення рівня ---
 
-
-        // 1) Знаходимо точку спавну Player
+        // 1) Зона спавну гравця
         RectangleMapObject spawnObj = null;
         MapLayer spawnLayer = map.getLayers().get("Spawn");
         if (spawnLayer != null) {
@@ -54,6 +59,7 @@ public class TiledLevel extends Level {
             }
         }
         if (spawnObj == null) {
+            // пошук у всіх шарах
             for (MapLayer layer : map.getLayers()) {
                 for (MapObject obj : layer.getObjects().getByType(RectangleMapObject.class)) {
                     if ("PlayerSpawn".equals(obj.getName())) {
@@ -65,116 +71,105 @@ public class TiledLevel extends Level {
             }
         }
         if (spawnObj != null) {
-            Rectangle rs = spawnObj.getRectangle();
-            startX = rs.x;
-            startY = rs.y;
+            Rectangle r = spawnObj.getRectangle();
+            startX = r.x;
+            startY = r.y;
         } else {
-            startX = 0;
-            startY = 0;
-            System.err.println("Warning: у карті не знайдено PlayerSpawn → стартова точка (0,0)");
+            startX = startY = 0;
+            System.err.println("Warning: у карті не знайдено PlayerSpawn → старт (0,0)");
         }
 
         // 2) Платформи з шару "ground"
-        TiledMapTileLayer groundLayer = (TiledMapTileLayer) map.getLayers().get("ground");
-        if (groundLayer != null) {
-            float tileW = groundLayer.getTileWidth();
-            float tileH = groundLayer.getTileHeight();
-            for (int x = 0; x < groundLayer.getWidth(); x++) {
-                for (int y = 0; y < groundLayer.getHeight(); y++) {
-                    if (groundLayer.getCell(x, y) != null) {
-                        world.addObject(new Platform(
-                            x * tileW, y * tileH,
-                            tileW, tileH,
-                            defaultTex
-                        ));
+        TiledMapTileLayer ground = (TiledMapTileLayer) map.getLayers().get("ground");
+        if (ground != null) {
+            float tw = ground.getTileWidth();
+            float th = ground.getTileHeight();
+            for (int x = 0; x < ground.getWidth(); x++) {
+                for (int y = 0; y < ground.getHeight(); y++) {
+                    if (ground.getCell(x, y) != null) {
+                        world.addObject(new Platform(x*tw, y*th, tw, th, defaultTex));
                     }
                 }
             }
         }
 
-// 3) Монети з шару "Coins"
+        // 3) Монети з шару "Coins" із фільтром за збереженням
         int slot = StartupHelper.getSelectedSlot();
-        SaveData saveData = SaveManager.load(slot);
-        System.out.println(">> Creating level. Slot=" + slot
-            + " | already collected: " + saveData.getCollectedCoins()
-            + " | already killed: "  + saveData.getKilledEnemies());
+        SaveData save = SaveManager.load(slot);
+        MapLayer coins = map.getLayers().get("Coins");
+        if (coins != null) {
+            int idx = 0;
+            for (MapObject obj : coins.getObjects().getByType(RectangleMapObject.class)) {
+                Rectangle r = ((RectangleMapObject)obj).getRectangle();
+                String coinId = "coin_" + (idx++);
+                if (save.isCoinCollected(coinId)) continue;
 
-        MapLayer coinsLayer = map.getLayers().get("Coins");
-        if (coinsLayer != null) {
-            int coinCounter = 0;
-            for (MapObject obj : coinsLayer.getObjects().getByType(RectangleMapObject.class)) {
-                Rectangle r = ((RectangleMapObject) obj).getRectangle();
-                String coinId = "coin_" + (coinCounter++);
-
-                // Дебаг: який ID, і чи фільтруємо?
-                if (saveData.isCoinCollected(coinId)) {
-                    System.out.println("   Skipping coin " + coinId);
-                    continue;
-                }
-                System.out.println("   Spawning coin " + coinId);
-
-                // створюємо анімації…
-                TextureRegion region = new TextureRegion(coinTex);
+                // проста анімація монети
                 Array<TextureRegion> frames = new Array<>();
-                frames.add(region);
-                Animation<TextureRegion> idleAnim = new Animation<>(0.2f, frames, Animation.PlayMode.LOOP);
-                Animation<TextureRegion> collectAnim = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
+                frames.add(new TextureRegion(coinTex));
+                Animation<TextureRegion> idle = new Animation<>(0.2f, frames, Animation.PlayMode.LOOP);
+                Animation<TextureRegion> collect = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
-                Coin coin = new Coin(r.x, r.y, idleAnim, collectAnim);
-                coin.setId(coinId);
-                world.addObject(coin);
+                Coin c = new Coin(r.x, r.y, idle, collect);
+                c.setId(coinId);
+                world.addObject(c);
             }
         }
 
-// 4) Вороги з шару "Enemies"
-        System.out.println(">> already killed: " + saveData.getKilledEnemies());
-        MapLayer enemiesLayer = map.getLayers().get("Enemies");
-        if (enemiesLayer != null) {
-            int enemyCounter = 0;
-            for (MapObject obj : enemiesLayer.getObjects().getByType(RectangleMapObject.class)) {
-                Rectangle r = ((RectangleMapObject) obj).getRectangle();
-                String enemyId = "enemy_" + (enemyCounter++);
+        // 4) Вороги з шару "Enemies" із фільтром за збереженням
+        MapLayer enemies = map.getLayers().get("Enemies");
+        if (enemies != null) {
+            int idx = 0;
+            for (MapObject obj : enemies.getObjects().getByType(RectangleMapObject.class)) {
+                Rectangle r = ((RectangleMapObject)obj).getRectangle();
+                String enemyId = "enemy_" + (idx++);
+                if (save.isEnemyKilled(enemyId)) continue;
 
-                if (saveData.isEnemyKilled(enemyId)) {
-                    System.out.println("   Skipping enemy " + enemyId);
-                    continue;
-                }
-                System.out.println("   Spawning enemy " + enemyId);
-
-                BaseEnemy enemy;
+                BaseEnemy e;
                 String type = obj.getProperties().get("type", String.class);
                 switch (type) {
-                    case "Goblin":
-                        enemy = new Goblin(r.x, r.y);
-                        break;
-                    case "Spider":
-                        enemy = new Spider(r.x, r.y);
-                        break;
-                    case "Skeleton":
-                        enemy = new Skeleton(r.x, r.y);
-                        break;
-                    default:
-                        continue;
+                    case "Goblin":   e = new Goblin(r.x, r.y); break;
+                    case "Spider":   e = new Spider(r.x, r.y); break;
+                    case "Skeleton": e = new Skeleton(r.x, r.y); break;
+                    default: continue;
                 }
-                enemy.setId(enemyId);
-                world.addEnemy(enemy);
+                e.setId(enemyId);
+                world.addEnemy(e);
+            }
+        }
+
+        // 5) Тривігери — тут обробляємо "exit" і додаємо його до exitZone
+        MapLayer triggers = map.getLayers().get("triggers");
+        if (triggers != null) {
+            for (MapObject obj : triggers.getObjects().getByType(RectangleMapObject.class)) {
+                Rectangle r = ((RectangleMapObject)obj).getRectangle();
+                String type = obj.getProperties().get("type", String.class);
+                if ("exit".equals(type)) {
+                    exitZone = r;  // запам’ятали зону виходу
+                }
             }
         }
     }
 
+    /** Рендеримо тайлову мапу */
     public void renderMap(OrthographicCamera cam) {
         renderer.setView(cam);
         renderer.render();
     }
 
     public float getMapPixelWidth() {
-        MapProperties props = map.getProperties();
-        return props.get("width", Integer.class) * props.get("tilewidth", Integer.class);
+        MapProperties p = map.getProperties();
+        return p.get("width", Integer.class)  * p.get("tilewidth", Integer.class);
     }
 
     public float getMapPixelHeight() {
-        MapProperties props = map.getProperties();
-        return props.get("height", Integer.class) * props.get("tileheight", Integer.class);
+        MapProperties p = map.getProperties();
+        return p.get("height", Integer.class) * p.get("tileheight", Integer.class);
+    }
+
+    /** Повертає зону виходу або null, якщо її нема */
+    public Rectangle getExitZone() {
+        return exitZone;
     }
 
     @Override
