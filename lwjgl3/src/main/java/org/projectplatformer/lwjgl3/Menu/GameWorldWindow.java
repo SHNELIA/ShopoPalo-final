@@ -174,9 +174,9 @@ public class GameWorldWindow extends JFrame implements ActionListener {
             this.repaint();
 
         } else if (e.getSource() == goToLevelsButton) {
-            this.setVisible(false);
-            new LevelsWindow(this);}
-        else if (e.getSource() == backToMenuButton) {
+            this.setVisible(false); // Ховаємо поточне вікно
+            new LevelsWindow(this); // ВІРНЕ СТВОРЕННЯ: передаємо поточний GameWorldWindow як батьківський
+        } else if (e.getSource() == backToMenuButton) {
             this.dispose(); // Закриваємо поточне вікно
             if (parentMenu != null) {
                 parentMenu.showGameMenu(); // Показуємо головне меню знову
