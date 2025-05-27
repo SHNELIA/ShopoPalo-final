@@ -11,7 +11,9 @@ public class StartupHelper {
     private StartupHelper() {
         throw new UnsupportedOperationException();
     }
-
+    private static int selectedLevel = 0;
+    public static void setSelectedLevel(int idx) { selectedLevel = idx; }
+    public static int getSelectedLevel() { return selectedLevel; }
     public static boolean startNewJvmIfRequired() {
         String osName = System.getProperty("os.name").toLowerCase();
 

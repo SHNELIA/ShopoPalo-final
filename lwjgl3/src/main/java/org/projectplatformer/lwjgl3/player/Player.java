@@ -85,8 +85,6 @@ public class Player {
         this.damageCooldown = cd;
     }
 
-
-
     private boolean coinCollect = false;
     private float collectTimer = 0f;
     private static final float COINCOLLECT_DURATION = 0.5f;
