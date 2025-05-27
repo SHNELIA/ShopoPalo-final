@@ -12,12 +12,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
-
 import java.io.File;
 import java.util.List;
-import javax.swing.JOptionPane;
-
-
 
 public class GameMenu extends JFrame implements ActionListener, ComponentListener {
 
@@ -37,8 +33,8 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     private JButton dialogContinueButton;
     private JButton dialogNewGameButton;
     private JButton dialogChooseSaveButton;
+    private JButton dialogChooseLevelButton;
     private JButton dialogBackToMainButton;
-
 
     // Colors
     private static final Color FANTASY_DARK_WOOD = new Color(60, 40, 20);
@@ -69,33 +65,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     private static Font FONT_DIALOG_TEXT_BASE;
 
     static {
-        // !!!!!!!!! ВАЖЛИВО !!!!!!!!!
-        // Якщо ви використовуєте власний шрифт, переконайтеся, що файл шрифту
-        // коректно розміщений у resources/fonts/MinecraftEven.ttf та доступний.
-        // Закоментований блок показує, як це зробити.
-        // Якщо шрифт не завантажується, буде використано Arial як запасний.
         try {
-            // InputStream is = GameMenu.class.getResourceAsStream("/fonts/MinecraftEven.ttf");
-            // if (is != null) {
-            //     Font minecraftEven = Font.createFont(Font.TRUETYPE_FONT, is);
-            //     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //     ge.registerFont(minecraftEven);
-            //     FONT_MAIN_TITLE_BASE = minecraftEven.deriveFont(Font.BOLD, 60f);
-            //     FONT_BUTTON_LARGE_BASE = minecraftEven.deriveFont(Font.BOLD, 28f);
-            //     FONT_BUTTON_SMALL_BASE = minecraftEven.deriveFont(Font.BOLD, 14f);
-            //     FONT_MADE_BY_BASE = minecraftEven.deriveFont(Font.PLAIN, 14f);
-            //     FONT_DIALOG_TITLE_BASE = minecraftEven.deriveFont(Font.BOLD, 36f);
-            //     FONT_DIALOG_TEXT_BASE = minecraftEven.deriveFont(Font.PLAIN, 18f);
-            // } else {
-            //     System.err.println("Font 'MinecraftEven.ttf' not found. Using Arial.");
-            //     FONT_MAIN_TITLE_BASE = new Font("Arial", Font.BOLD, 60);
-            //     FONT_BUTTON_LARGE_BASE = new Font("Arial", Font.BOLD, 28);
-            //     FONT_BUTTON_SMALL_BASE = new Font("Arial", Font.BOLD, 14);
-            //     FONT_MADE_BY_BASE = new Font("Arial", Font.PLAIN, 14);
-            //     FONT_DIALOG_TITLE_BASE = new Font("Arial", Font.BOLD, 36);
-            //     FONT_DIALOG_TEXT_BASE = new Font("Arial", Font.PLAIN, 18);
-            // }
-            // Якщо ви не використовуєте спеціальні шрифти, просто залиште Arial:
             FONT_MAIN_TITLE_BASE = new Font("Arial", Font.BOLD, 60);
             FONT_BUTTON_LARGE_BASE = new Font("Arial", Font.BOLD, 28);
             FONT_BUTTON_SMALL_BASE = new Font("Arial", Font.BOLD, 14);
@@ -103,8 +73,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             FONT_DIALOG_TITLE_BASE = new Font("Arial", Font.BOLD, 36);
             FONT_DIALOG_TEXT_BASE = new Font("Arial", Font.PLAIN, 18);
         } catch (Exception e) {
-            System.err.println("Error loading font. Using Arial. " + e.getMessage());
-            // Fallback to Arial if font loading fails
             FONT_MAIN_TITLE_BASE = new Font("Arial", Font.BOLD, 60);
             FONT_BUTTON_LARGE_BASE = new Font("Arial", Font.BOLD, 28);
             FONT_BUTTON_SMALL_BASE = new Font("Arial", Font.BOLD, 14);
@@ -114,26 +82,22 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         }
     }
 
-
     public GameMenu() {
-        // Main window setup
         setTitle(LanguageManager.get("title") + " - Menu");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(BASE_WIDTH, BASE_HEIGHT));
 
-        // Додаємо ComponentListener до вікна
         addComponentListener(this);
 
         JPanel mainPanel = new JPanel(new BorderLayout(30, 20));
         mainPanel.setBackground(FANTASY_DARK_WOOD);
         mainPanel.setBorder(new EmptyBorder(40, 60, 30, 60));
-        // Game title
+
         titleLabel = new JLabel(LanguageManager.get("title"), SwingConstants.CENTER);
         titleLabel.setForeground(FANTASY_BRONZE);
         titleLabel.setBorder(new EmptyBorder(10, 0, 40, 0));
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
-        // Main buttons panel
         JPanel buttonsContainerPanel = new JPanel(new GridBagLayout());
         buttonsContainerPanel.setOpaque(false);
 
@@ -144,13 +108,11 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // Create buttons using the createFantasyButton method
         playButton = createFantasyButton(LanguageManager.get("playButton"), FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         guideButton = createFantasyButton(LanguageManager.get("guideButton"), FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         settingsButton = createFantasyButton(LanguageManager.get("settingsButton"), FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         quitButton = createFantasyButton(LanguageManager.get("quitButton"), FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
 
-        // Add action listeners
         playButton.addActionListener(this);
         guideButton.addActionListener(this);
         settingsButton.addActionListener(this);
@@ -165,18 +127,12 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         gbc.gridy = 3;
         buttonsContainerPanel.add(quitButton, gbc);
 
-        // Add "stretchers" (weights) for centering
         gbc.gridy = 4;
-        gbc.weighty = 1.0;
-        buttonsContainerPanel.add(Box.createVerticalGlue(), gbc);
-        gbc.gridy = -1;
         gbc.weighty = 1.0;
         buttonsContainerPanel.add(Box.createVerticalGlue(), gbc);
 
         mainPanel.add(buttonsContainerPanel, BorderLayout.CENTER);
 
-
-        // Bottom panel - Використовуємо BorderLayout для контролю
         JPanel bottomPanel = new JPanel(new BorderLayout(30, 10));
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
@@ -191,7 +147,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             AudioManager.isSoundsEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR,
             FONT_BUTTON_SMALL_BASE);
 
-        // Встановлюємо розміри для малих кнопок
         Dimension toggleSize = new Dimension(160, 40);
         musicButton.setPreferredSize(toggleSize);
         musicButton.setMinimumSize(new Dimension(80, 30));
@@ -201,7 +156,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         soundButton.setMinimumSize(new Dimension(80, 30));
         soundButton.setMaximumSize(toggleSize);
 
-
         musicButton.addActionListener(this);
         soundButton.addActionListener(this);
 
@@ -209,7 +163,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         soundTogglePanel.add(soundButton);
         bottomPanel.add(soundTogglePanel, BorderLayout.WEST);
 
-        // MADE BY LABEL - Тепер з HTML-форматуванням
         JPanel madeByPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         madeByPanel.setOpaque(false);
         madeByLabel = new JLabel("<html><div style='text-align: right;'>Made by: <br>Shpuniar Nazar<br>Revenko Anna<br>Burma Sofia<br>Horyslavets Kateryna<br>Tsaprylova Irina</div></html>", SwingConstants.RIGHT);
@@ -222,13 +175,10 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         add(mainPanel);
         pack();
         setLocationRelativeTo(null);
-        setVisible(true);
 
-        // Ось сюди—реєструємо екземпляр меню в StartupHelper:
-        StartupHelper.setGameMenu(this);
+        updateMenuComponentSizes();
     }
 
-    // Метод для динамічного оновлення розмірів компонентів головного меню та діалогу
     public void updateMenuComponentSizes() {
         int currentWidth = getWidth();
         int currentHeight = getHeight();
@@ -237,18 +187,15 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         double scaleY = (double) currentHeight / BASE_HEIGHT;
         double overallScale = Math.min(scaleX, scaleY);
 
-        // Оновлення заголовка головного меню
         titleLabel.setFont(FONT_MAIN_TITLE_BASE.deriveFont((float) (FONT_MAIN_TITLE_BASE.getSize2D() * overallScale)));
 
-        // Оновлення великих кнопок головного меню
         Font currentLargeButtonFont = FONT_BUTTON_LARGE_BASE.deriveFont((float) (FONT_BUTTON_LARGE_BASE.getSize2D() * overallScale));
         playButton.setFont(currentLargeButtonFont);
         guideButton.setFont(currentLargeButtonFont);
         settingsButton.setFont(currentLargeButtonFont);
         quitButton.setFont(currentLargeButtonFont);
 
-        // Оновлення малих кнопок головного меню
-        Font currentSmallButtonFont = FONT_BUTTON_SMALL_BASE.deriveFont((float) (FONT_BUTTON_SMALL_BASE.getSize2D() * overallScale));
+        Font currentSmallButtonFont = FONT_BUTTON_SMALL_BASE.deriveFont((float) 10.0f);
         musicButton.setFont(currentSmallButtonFont);
         soundButton.setFont(currentSmallButtonFont);
 
@@ -265,11 +212,9 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         soundButton.setMinimumSize(newToggleSize);
         soundButton.setMaximumSize(newToggleSize);
 
-        // Оновлення madeByLabel - шрифт також масштабується
         Font currentMadeByFont = FONT_MADE_BY_BASE.deriveFont((float) (FONT_MADE_BY_BASE.getSize2D() * overallScale));
         madeByLabel.setFont(currentMadeByFont);
 
-        // Якщо вікно дуже вузьке, зменшуємо відступи внизу
         JPanel mainContentPanel = (JPanel) getContentPane().getComponent(0);
         JPanel bottomPanel = (JPanel) mainContentPanel.getComponent(mainContentPanel.getComponentCount() - 1);
 
@@ -280,7 +225,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             bottomPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
         }
 
-        // Оновлення компонентів діалогу (якщо він відкритий)
         if (playMenuDialog != null && playMenuDialog.isVisible()) {
             int dialogCurrentWidth = playMenuDialog.getWidth();
             int dialogCurrentHeight = playMenuDialog.getHeight();
@@ -297,9 +241,9 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             if (dialogContinueButton != null) dialogContinueButton.setFont(dialogButtonFont);
             if (dialogNewGameButton != null) dialogNewGameButton.setFont(dialogButtonFont);
             if (dialogChooseSaveButton != null) dialogChooseSaveButton.setFont(dialogButtonFont);
+            if (dialogChooseLevelButton != null) dialogChooseLevelButton.setFont(dialogButtonFont);
             if (dialogBackToMainButton != null) dialogBackToMainButton.setFont(dialogButtonFont);
 
-            // Оновлення розмірів кнопок у діалозі (аналогічно main buttons)
             Dimension dialogBtnMinSize = new Dimension((int)(200 * dialogOverallScale), (int)(60 * dialogOverallScale));
             Dimension dialogBtnMaxSize = new Dimension((int)(450 * dialogOverallScale), (int)(85 * dialogOverallScale));
 
@@ -318,12 +262,16 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                 dialogChooseSaveButton.setPreferredSize(dialogBtnMinSize);
                 dialogChooseSaveButton.setMaximumSize(dialogBtnMaxSize);
             }
+            if (dialogChooseLevelButton != null) {
+                dialogChooseLevelButton.setMinimumSize(dialogBtnMinSize);
+                dialogChooseLevelButton.setPreferredSize(dialogBtnMinSize);
+                dialogChooseLevelButton.setMaximumSize(dialogBtnMaxSize);
+            }
             if (dialogBackToMainButton != null) {
                 dialogBackToMainButton.setMinimumSize(dialogBtnMinSize);
                 dialogBackToMainButton.setPreferredSize(dialogBtnMinSize);
                 dialogBackToMainButton.setMaximumSize(dialogBtnMaxSize);
             }
-
 
             playMenuDialog.revalidate();
             playMenuDialog.repaint();
@@ -337,17 +285,14 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     public void componentResized(ComponentEvent e) {
         updateMenuComponentSizes();
     }
-
     @Override
     public void componentMoved(ComponentEvent e) {}
-
     @Override
     public void componentShown(ComponentEvent e) {}
-
     @Override
     public void componentHidden(ComponentEvent e) {}
 
-
+    // FantasyButton class
     private class FantasyButton extends JButton {
         private Color currentBackgroundColor;
         private Color defaultBaseColor;
@@ -364,51 +309,22 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             setContentAreaFilled(false);
             setBorderPainted(false);
             setCursor(new Cursor(Cursor.HAND_CURSOR));
-
             addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    isHovered = true;
-                    repaint();
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    isHovered = false;
-                    repaint();
-                }
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    isPressed = true;
-                    repaint();
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    isPressed = false;
-                    repaint();
-                }
+                @Override public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                @Override public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                @Override public void mousePressed(MouseEvent e) { isPressed = true; repaint(); }
+                @Override public void mouseReleased(MouseEvent e) { isPressed = false; repaint(); }
             });
         }
-
-        public void setCurrentBackgroundColor(Color color) {
-            this.currentBackgroundColor = color;
-            repaint();
-        }
-
-
+        public void setCurrentBackgroundColor(Color color) { this.currentBackgroundColor = color; repaint(); }
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             Color actualBgColor = currentBackgroundColor;
-            if (isPressed) {
-                actualBgColor = BUTTON_PRESSED_COLOR_DARK;
-            } else if (isHovered) {
-                actualBgColor = BUTTON_HOVER_COLOR_LIGHT;
-            }
+            if (isPressed) actualBgColor = BUTTON_PRESSED_COLOR_DARK;
+            else if (isHovered) actualBgColor = BUTTON_HOVER_COLOR_LIGHT;
 
             g2.setColor(actualBgColor);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
@@ -422,13 +338,11 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             super.paintComponent(g);
             g2.dispose();
         }
-
         @Override
-        protected void paintBorder(Graphics g) {
-        }
+        protected void paintBorder(Graphics g) {}
     }
 
-
+    // Create FantasyButton method
     private JButton createFantasyButton(String text, Color bgColor, Font font) {
         FantasyButton button = new FantasyButton(text, bgColor, font);
         Dimension minBtnSize = new Dimension(200, 60);
@@ -443,10 +357,9 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         return button;
     }
 
-
     @Override
     public void actionPerformed(ActionEvent e) {
-        AudioManager.playClickSound();
+        AudioManager.playClickSound(); // Звук для всіх основних кнопок
         if (e.getSource() == playButton) {
             showPlayMenu();
         } else if (e.getSource() == guideButton) {
@@ -480,6 +393,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         }
     }
 
+    // Play Menu
     private void showPlayMenu() {
         playMenuDialog = new JDialog(this, "Game Options", true);
         playMenuDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -501,18 +415,15 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             }
         });
 
-
         JPanel playMenuPanel = new JPanel(new BorderLayout(30, 20));
         playMenuPanel.setBackground(FANTASY_DARK_WOOD);
         playMenuPanel.setBorder(new EmptyBorder(40, 60, 30, 60));
-        // Title
         playMenuTitle = new JLabel("GAME OPTIONS", SwingConstants.CENTER);
         playMenuTitle.setFont(FONT_MAIN_TITLE_BASE.deriveFont(40f));
         playMenuTitle.setForeground(FANTASY_BRONZE);
         playMenuTitle.setBorder(new EmptyBorder(10, 0, 40, 0));
         playMenuPanel.add(playMenuTitle, BorderLayout.NORTH);
 
-        // Buttons panel
         JPanel buttonsGridPanel = new JPanel(new GridBagLayout());
         buttonsGridPanel.setOpaque(false);
 
@@ -523,14 +434,15 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.CENTER;
 
-
         dialogContinueButton = createFantasyButton("CONTINUE", FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         dialogNewGameButton = createFantasyButton("NEW GAME", FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         dialogChooseSaveButton = createFantasyButton("CHOOSE SAVE", FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
+        dialogChooseLevelButton = createFantasyButton("CHOOSE LEVEL", FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
         dialogBackToMainButton = createFantasyButton("BACK TO MENU", FANTASY_BROWN_LEATHER, FONT_BUTTON_LARGE_BASE);
 
-        // Add action listeners
+        // --- Додаємо обробники і ЗВУК клацання на всі кнопки діалогу ---
         dialogContinueButton.addActionListener(e -> {
+            AudioManager.playClickSound();
             List<Integer> used = SaveManager.availableSlots();
             if (used.isEmpty()) {
                 JOptionPane.showMessageDialog(
@@ -553,6 +465,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                     }
                 }
 
+
                 // Налаштовуємо Continue на цей найсвіжіший слот
                 StartupHelper.setSelectedSlot(recentSlot);
                 StartupHelper.setContinueGame(true);
@@ -570,7 +483,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         });
 
         dialogNewGameButton.addActionListener(e -> {
-            // Питаємо, чи починаємо нову гру
+            AudioManager.playClickSound();
             int choice = JOptionPane.showConfirmDialog(
                 playMenuDialog,
                 LanguageManager.get("newGameConfirm_message"),
@@ -580,7 +493,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
             );
             if (choice != JOptionPane.YES_OPTION) return;
 
-            // Знаходимо перший вільний слот (1–4)
             List<Integer> used = SaveManager.availableSlots();
             int freeSlot = -1;
             for (int i = 1; i <= 4; i++) {
@@ -596,25 +508,32 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                 return;
             }
 
-            // Створюємо початкове порожнє збереження в цьому слоті
             SaveData data = new SaveData();
             SaveManager.save(freeSlot, data);
 
-            // Запам’ятовуємо вибір у StartupHelper
             StartupHelper.setSelectedSlot(freeSlot);
             StartupHelper.setContinueGame(false);
 
-            // Закриваємо діалог і запускаємо гру
             playMenuDialog.dispose();
             startGame(false);
         });
 
         dialogChooseSaveButton.addActionListener(e -> {
+            AudioManager.playClickSound();
             playMenuDialog.dispose();
             showSaveSelection();
         });
 
-        dialogBackToMainButton.addActionListener(e -> playMenuDialog.dispose());
+        dialogChooseLevelButton.addActionListener(e -> {
+            AudioManager.playClickSound();
+            playMenuDialog.dispose();
+            openLevelsWindow();
+        });
+
+        dialogBackToMainButton.addActionListener(e -> {
+            AudioManager.playClickSound();
+            playMenuDialog.dispose();
+        });
 
         gbc.gridy = 0;
         buttonsGridPanel.add(dialogContinueButton, gbc);
@@ -623,15 +542,12 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         gbc.gridy = 2;
         buttonsGridPanel.add(dialogChooseSaveButton, gbc);
         gbc.gridy = 3;
-        buttonsGridPanel.add(dialogBackToMainButton, gbc);
-
+        buttonsGridPanel.add(dialogChooseLevelButton, gbc);
         gbc.gridy = 4;
+        buttonsGridPanel.add(dialogBackToMainButton, gbc);
+        gbc.gridy = 5;
         gbc.weighty = 1.0;
         buttonsGridPanel.add(Box.createVerticalGlue(), gbc);
-        gbc.gridy = -1;
-        gbc.weighty = 1.0;
-        buttonsGridPanel.add(Box.createVerticalGlue(), gbc);
-
 
         playMenuPanel.add(buttonsGridPanel, BorderLayout.CENTER);
         playMenuDialog.add(playMenuPanel);
@@ -641,13 +557,13 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
         playMenuDialog.setVisible(true);
     }
 
+    public void openLevelsWindow() {
+        this.setVisible(false);
+        new LevelsWindow(this);
+    }
+
     public void startGame(boolean continueGame) {
         this.setVisible(false);
-
-
-        String message = continueGame ?
-            LanguageManager.get("startGame_loadingSaved") :
-            LanguageManager.get("startGame_startingNew");
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
@@ -660,7 +576,6 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
     private void showSaveSelection() {
         this.setVisible(false);
         SaveSelectionDialog saveDialog = new SaveSelectionDialog(this);
-        // WindowListener is already added inside SaveSelectionDialog's constructor
         saveDialog.setVisible(true);
     }
 
@@ -728,10 +643,8 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                 e.printStackTrace();
             }
 
-            // Create GameMenu instance, but do NOT make it visible immediately
             GameMenu gameMenu = new GameMenu();
 
-            // Implement a simple splash screen or loading phase
             JFrame splashFrame = new JFrame("Loading Game...");
             splashFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             splashFrame.setUndecorated(true);
