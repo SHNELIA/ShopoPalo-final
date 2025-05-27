@@ -255,6 +255,8 @@ public class Main extends ApplicationAdapter {
         if (pb.y + pb.height < 0) {
             fallTimer += delta;
             if (fallTimer >= FALL_DEATH_DELAY) {
+                int slot = StartupHelper.getSelectedSlot();
+                SaveManager.save(slot, new SaveData());
                 player.takeDamage(player.getHealth());
             }
         } else {
