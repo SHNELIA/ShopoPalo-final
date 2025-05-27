@@ -464,7 +464,12 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
                         recentSlot = slot;
                     }
                 }
+                SaveData data = SaveManager.load(recentSlot); // <-- ось тут потрібен доступ до поточного рівня
+                int currentLevel = data.getCurrentLevel(); // <--- ось цей метод/поле потрібно знати!
+                String levelName = "level" + currentLevel;
 
+                AudioManager.playLevelMusic(levelName);
+                new GameWorldWindow(String.valueOf(currentLevel), this);
 
                 // Налаштовуємо Continue на цей найсвіжіший слот
                 StartupHelper.setSelectedSlot(recentSlot);

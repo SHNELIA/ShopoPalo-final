@@ -167,4 +167,8 @@ public class SaveData {
         this.unlockedWeapons.clear();
         this.equippedWeaponId = null;
     }
+
+    public int getCurrentLevel() {
+        return levelIndex;
+    }
 }
