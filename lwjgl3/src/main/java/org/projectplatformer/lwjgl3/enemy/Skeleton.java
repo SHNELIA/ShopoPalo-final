@@ -21,7 +21,7 @@ public class Skeleton extends BaseEnemy {
 
     // Параметри атаки
     private static final float ATTACK_DURATION = 0.30f;
-    private static final float ATTACK_COOLDOWN = 1.5f;
+    private static final float ATTACK_COOLDOWN = 2f;
     private static final int ATTACK_DAMAGE = 30;
     private static final float MELEE_RANGE = 70f;
 

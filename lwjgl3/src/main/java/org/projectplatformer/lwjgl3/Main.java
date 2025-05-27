@@ -283,24 +283,27 @@ public class Main extends ApplicationAdapter {
         batch.end();
 
         // Хітбокси
-        shapeRenderer.setProjectionMatrix(camera.combined);
+/*        shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         if (player != null) player.renderHitbox(shapeRenderer);
         for (BaseEnemy e : world.getEnemies()) {
             e.renderHitbox(shapeRenderer);
         }
-        shapeRenderer.end();
+        shapeRenderer.end();*/
 
         // Панель здоров'я
+        shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         float barX = camera.position.x - gameViewport.getWorldWidth() / 2f + 10;
         float barY = camera.position.y + gameViewport.getWorldHeight() / 2f - 30;
-        float barW = 200f, barH = 20f;
+        float barW = 200, barH = 20;
         float pct = player != null
             ? (float) player.getHealth() / player.getMaxHealth()
             : 0f;
+
         shapeRenderer.setColor(0.8f, 0.1f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW, barH);
+
         shapeRenderer.setColor(0.1f, 0.8f, 0.1f, 1f);
         shapeRenderer.rect(barX, barY, barW * pct, barH);
         shapeRenderer.end();

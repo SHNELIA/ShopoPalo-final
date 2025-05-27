@@ -1,5 +1,10 @@
 package org.projectplatformer.lwjgl3.Menu;
 
+import org.projectplatformer.lwjgl3.SaveData;
+import org.projectplatformer.lwjgl3.SaveManager;
+import org.projectplatformer.lwjgl3.Shop.Shop;
+import org.projectplatformer.lwjgl3.StartupHelper;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -155,21 +160,47 @@ public class GameWorldWindow extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        AudioManager.playClickSound();
+
         if (e.getSource() == shopButton) {
-            JOptionPane.showMessageDialog(this, LanguageManager.get("gameWorld_shop_message"));
+            // 1) Завантажуємо дані з поточного ігрового слоту
+            int slot = StartupHelper.getSelectedSlot();
+            SaveData data = SaveManager.load(slot);
+
+            // 2) Ховаємо це вікно
+            this.setVisible(false);
+
+            // 3) Відкриваємо вікно Shop
+            Shop shopWindow = new Shop(data);
+            shopWindow.setVisible(true);
+
+            // 4) Після закриття Shop повертаємося сюди
+            shopWindow.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent we) {
+                    GameWorldWindow.this.setVisible(true);
+                }
+            });
+
         } else if (e.getSource() == equipmentButton) {
             this.setVisible(false);
-            new EquipmentWindow(this);
+            new EquipmentWindow(this).setVisible(true);
+            // Після закриття EquipmentWindow ми знову відобразимо це вікно:
             this.setVisible(true);
             this.revalidate();
             this.repaint();
+
         } else if (e.getSource() == goToLevelsButton) {
             this.setVisible(false);
-            new LevelsWindow(parentMenu); // ВАЖЛИВО: передаємо parentMenu для коректного повернення!
+            // Передаємо parentMenu, щоб LevelsWindow міг повернутися назад
+            new LevelsWindow(parentMenu).setVisible(true);
             this.dispose();
+
         } else if (e.getSource() == backToMenuButton) {
-            AudioManager.stopLevelMusic();
+            // Зупиняємо музику рівня, відтворюємо музику меню
+            AudioManager.pauseLevelMusic();
             AudioManager.playMenuMusic();
+
             this.dispose();
             if (parentMenu != null) {
                 parentMenu.showGameMenu();
@@ -178,6 +209,7 @@ public class GameWorldWindow extends JFrame implements ActionListener {
             }
         }
     }
+
 
     // --- FantasyButton ---
     private JButton createFantasyButton(String text, Color bgColor, Font font) {
