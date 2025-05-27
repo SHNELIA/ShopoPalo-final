@@ -1,4 +1,4 @@
-package org.projectplatformer.lwjgl3.logic;
+package org.projectplatformer.lwjgl3.enemy;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;

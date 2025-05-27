@@ -150,7 +150,7 @@ public class TiledLevel extends Level {
                     case "Witch":
                         // тепер користуємося полем assetManager:
                         Texture witchTex = assetManager.get("Enemies/Witch/walk/Witch1.png", Texture.class);
-                        e = new Witch(r.x, r.y, witchTex);
+                        e = new Witch(r.x, r.y);
                         break;
                     default:
                         continue;
