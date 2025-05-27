@@ -6,46 +6,31 @@ import java.awt.event.*;
 
 public class Esc {
 
+    // --- Головне ігрове вікно з пауз-меню ---
     public static class GameWindow extends JFrame implements KeyListener, ComponentListener {
-
         private JPanel menuPanel;
         private boolean menuVisible = false;
         private GameMenu gameMenuInstance;
+        private JButton musicButton, soundsButton;
 
-        private JButton musicButton;
-        private JButton soundsButton;
-
+        // Кольори
         private static final Color PAUSE_MENU_BG_COLOR = new Color(51, 34, 25);
         private static final Color PAUSE_MENU_TITLE_COLOR = new Color(153, 102, 51);
         private static final Color BUTTON_TEXT_COLOR = new Color(255, 255, 255);
         private static final Color BUTTON_BG_COLOR = new Color(102, 68, 34);
-
         private static final Color BUTTON_ON_COLOR = new Color(70, 120, 70);
         private static final Color BUTTON_OFF_COLOR = new Color(120, 70, 70);
         private static final Color BUTTON_HOVER_COLOR_LIGHT = new Color(130, 95, 50);
         private static final Color BUTTON_PRESSED_COLOR_DARK = new Color(70, 45, 15);
-
         private static final Color BUTTON_BORDER_OUTER = new Color(128, 85, 42);
         private static final Color BUTTON_BORDER_INNER = new Color(77, 51, 26);
 
-        private static final int BASE_WIDTH = 800;
-        private static final int BASE_HEIGHT = 600;
-
-        private Font FONT_PAUSE_TITLE_BASE;
-        private Font FONT_BUTTON_PAUSE_BASE;
+        private static final int BASE_WIDTH = 800, BASE_HEIGHT = 600;
+        private Font FONT_PAUSE_TITLE_BASE = new Font("SansSerif", Font.BOLD, 36);
+        private Font FONT_BUTTON_PAUSE_BASE = new Font("SansSerif", Font.BOLD, 22);
 
         public GameWindow(GameMenu gameMenu) {
             this.gameMenuInstance = gameMenu;
-            initializeFonts();
-            initializeUI();
-        }
-
-        private void initializeFonts() {
-            FONT_PAUSE_TITLE_BASE = new Font("SansSerif", Font.BOLD, 36);
-            FONT_BUTTON_PAUSE_BASE = new Font("SansSerif", Font.BOLD, 22);
-        }
-
-        private void initializeUI() {
             setTitle(LanguageManager.get("gameWindow_title"));
             setSize(BASE_WIDTH, BASE_HEIGHT);
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,7 +39,6 @@ public class Esc {
             addKeyListener(this);
             setFocusable(true);
             setFocusTraversalKeysEnabled(false);
-
             addComponentListener(this);
 
             JPanel mainContentPanel = new JPanel();
@@ -63,7 +47,6 @@ public class Esc {
             add(mainContentPanel, BorderLayout.CENTER);
 
             initMenuPanel();
-
             updateMenuComponentSizes();
 
             setVisible(true);
@@ -79,7 +62,6 @@ public class Esc {
             gbc.insets = new Insets(15, 0, 15, 0);
             gbc.anchor = GridBagConstraints.CENTER;
             gbc.gridx = 0;
-            gbc.weightx = 0;
 
             JLabel titleLabel = new JLabel("PAUSE");
             titleLabel.setForeground(PAUSE_MENU_TITLE_COLOR);
@@ -99,29 +81,21 @@ public class Esc {
             soundsButton = createFantasyButton(AudioManager.getSoundsButtonText(),
                 AudioManager.isSoundsEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR);
 
-            // ДОДАНО ЗВУК КЛІКУ У ВСІ ACTIONS
+            // --- Кнопки ---
             continueButton.addActionListener(e -> {
                 AudioManager.playClickSound();
-                System.out.println("Продовжити гру/додаток");
                 toggleMenuVisibility();
             });
-
             guideButton.addActionListener(e -> {
                 AudioManager.playClickSound();
-                System.out.println("Відкрити довідник/посібник");
                 GuideWindow guideWindow = new GuideWindow(this);
                 guideWindow.setVisible(true);
             });
-
             goToMenuButton.addActionListener(e -> {
                 AudioManager.playClickSound();
-                System.out.println("Перейти до головного меню");
                 dispose();
-                if (gameMenuInstance != null) {
-                    gameMenuInstance.showGameMenu();
-                }
+                if (gameMenuInstance != null) gameMenuInstance.showGameMenu();
             });
-
             musicButton.addActionListener(e -> {
                 AudioManager.playClickSound();
                 AudioManager.toggleMusic();
@@ -129,10 +103,8 @@ public class Esc {
                 ((FantasyButton) musicButton).setCurrentBackgroundColor(
                     AudioManager.isMusicEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR
                 );
-                revalidate();
-                repaint();
+                revalidate(); repaint();
             });
-
             soundsButton.addActionListener(e -> {
                 AudioManager.playClickSound();
                 AudioManager.toggleSounds();
@@ -140,24 +112,14 @@ public class Esc {
                 ((FantasyButton) soundsButton).setCurrentBackgroundColor(
                     AudioManager.isSoundsEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR
                 );
-                revalidate();
-                repaint();
+                revalidate(); repaint();
             });
 
-            gbc.gridy = 1;
-            menuPanel.add(continueButton, gbc);
-
-            gbc.gridy = 2;
-            menuPanel.add(guideButton, gbc);
-
-            gbc.gridy = 3;
-            menuPanel.add(goToMenuButton, gbc);
-
-            gbc.gridy = 4;
-            menuPanel.add(musicButton, gbc);
-
-            gbc.gridy = 5;
-            menuPanel.add(soundsButton, gbc);
+            gbc.gridy = 1; menuPanel.add(continueButton, gbc);
+            gbc.gridy = 2; menuPanel.add(guideButton, gbc);
+            gbc.gridy = 3; menuPanel.add(goToMenuButton, gbc);
+            gbc.gridy = 4; menuPanel.add(musicButton, gbc);
+            gbc.gridy = 5; menuPanel.add(soundsButton, gbc);
 
             gbc.gridx = 0;
             gbc.gridy = 6;
@@ -167,19 +129,16 @@ public class Esc {
             menuPanel.add(Box.createHorizontalGlue(), gbc);
 
             menuPanel.setVisible(false);
-            JLayeredPane layeredPane = getLayeredPane();
-            layeredPane.add(menuPanel, JLayeredPane.PALETTE_LAYER);
+            getLayeredPane().add(menuPanel, JLayeredPane.PALETTE_LAYER);
         }
 
+        // --- Кастомна кнопка ---
         private class FantasyButton extends JButton {
             private Color currentBackgroundColor;
-            private Color defaultBackgroundColor;
-            private boolean isHovered = false;
-            private boolean isPressed = false;
+            private boolean isHovered = false, isPressed = false;
 
             public FantasyButton(String text, Color defaultBgColor) {
                 super(text);
-                this.defaultBackgroundColor = defaultBgColor;
                 this.currentBackgroundColor = defaultBgColor;
                 setForeground(BUTTON_TEXT_COLOR);
                 setFocusPainted(false);
@@ -188,47 +147,24 @@ public class Esc {
                 setCursor(new Cursor(Cursor.HAND_CURSOR));
 
                 addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        isHovered = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        isHovered = false;
-                        repaint();
-                    }
-                    @Override
-                    public void mousePressed(MouseEvent e) {
-                        isPressed = true;
-                        repaint();
-                    }
-                    @Override
-                    public void mouseReleased(MouseEvent e) {
-                        isPressed = false;
-                        repaint();
-                    }
+                    public void mouseEntered(MouseEvent e) { isHovered = true; repaint(); }
+                    public void mouseExited(MouseEvent e) { isHovered = false; repaint(); }
+                    public void mousePressed(MouseEvent e) { isPressed = true; repaint(); }
+                    public void mouseReleased(MouseEvent e) { isPressed = false; repaint(); }
                 });
             }
-
-            public void setCurrentBackgroundColor(Color color) {
-                this.currentBackgroundColor = color;
-                repaint();
-            }
+            public void setCurrentBackgroundColor(Color color) { this.currentBackgroundColor = color; repaint(); }
 
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                Color actualBgColor = currentBackgroundColor;
-                if (isPressed) {
-                    actualBgColor = BUTTON_PRESSED_COLOR_DARK;
-                } else if (isHovered) {
-                    actualBgColor = BUTTON_HOVER_COLOR_LIGHT;
-                }
+                Color bg = currentBackgroundColor;
+                if (isPressed) bg = BUTTON_PRESSED_COLOR_DARK;
+                else if (isHovered) bg = BUTTON_HOVER_COLOR_LIGHT;
 
-                g2.setColor(actualBgColor);
+                g2.setColor(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
 
                 g2.setColor(BUTTON_BORDER_OUTER);
@@ -247,115 +183,73 @@ public class Esc {
                 g2.drawString(getText(), x, y);
                 g2.dispose();
             }
-
             @Override
             protected void paintBorder(Graphics g) {}
         }
 
-        private JButton createFantasyButton(String text, Color defaultBgColor) {
-            return new FantasyButton(text, defaultBgColor);
+        private JButton createFantasyButton(String text, Color bgColor) {
+            FantasyButton btn = new FantasyButton(text, bgColor);
+            btn.setFont(FONT_BUTTON_PAUSE_BASE);
+            btn.setPreferredSize(new Dimension(200, 50));
+            return btn;
         }
 
+        // --- Масштабування пауз-меню ---
         private void updateMenuComponentSizes() {
-            int currentWidth = getWidth();
-            int currentHeight = getHeight();
-
-            double scaleX = (double) currentWidth / BASE_WIDTH;
-            double scaleY = (double) currentHeight / BASE_HEIGHT;
-            double overallScale = Math.min(scaleX, scaleY);
+            int w = getWidth(), h = getHeight();
+            double scaleX = (double) w / BASE_WIDTH, scaleY = (double) h / BASE_HEIGHT;
+            double scale = Math.min(scaleX, scaleY);
 
             JLabel titleLabel = (JLabel) menuPanel.getComponent(0);
-            Font currentTitleFont = FONT_PAUSE_TITLE_BASE.deriveFont((float) (FONT_PAUSE_TITLE_BASE.getSize2D() * overallScale));
-            titleLabel.setFont(currentTitleFont);
-
-            Font currentButtonFont = FONT_BUTTON_PAUSE_BASE.deriveFont((float) (FONT_BUTTON_PAUSE_BASE.getSize2D() * overallScale));
-
+            titleLabel.setFont(FONT_PAUSE_TITLE_BASE.deriveFont((float)(FONT_PAUSE_TITLE_BASE.getSize2D() * scale)));
+            Font curBtnFont = FONT_BUTTON_PAUSE_BASE.deriveFont((float)(FONT_BUTTON_PAUSE_BASE.getSize2D() * scale));
             for (int i = 1; i < menuPanel.getComponentCount() - 1; i++) {
                 Component comp = menuPanel.getComponent(i);
                 if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    button.setFont(currentButtonFont);
-
-                    Dimension baseButtonSize = new Dimension(200, 50);
-                    Dimension newButtonSize = new Dimension(
-                        (int) (baseButtonSize.width * overallScale),
-                        (int) (baseButtonSize.height * overallScale)
-                    );
-                    button.setPreferredSize(newButtonSize);
-                    button.setMinimumSize(newButtonSize);
-                    button.setMaximumSize(newButtonSize);
+                    JButton btn = (JButton) comp;
+                    btn.setFont(curBtnFont);
+                    Dimension base = new Dimension(200, 50);
+                    Dimension d = new Dimension((int)(base.width * scale), (int)(base.height * scale));
+                    btn.setPreferredSize(d); btn.setMinimumSize(d); btn.setMaximumSize(d);
                 }
             }
-
-            menuPanel.setPreferredSize(new Dimension(
-                (int)(400 * overallScale),
-                (int)(550 * overallScale)
-            ));
-
+            menuPanel.setPreferredSize(new Dimension((int)(400 * scale), (int)(550 * scale)));
             centerMenuPanel();
-            revalidate();
-            repaint();
+            revalidate(); repaint();
         }
-
         private void centerMenuPanel() {
             if (menuVisible) {
-                int panelWidth = menuPanel.getPreferredSize().width;
-                int panelHeight = menuPanel.getPreferredSize().height;
-
-                int frameWidth = getContentPane().getWidth();
-                int frameHeight = getContentPane().getHeight();
-
-                int x = (frameWidth - panelWidth) / 2;
-                int y = (frameHeight - panelHeight) / 2;
-
-                menuPanel.setBounds(x, y, panelWidth, panelHeight);
-                menuPanel.revalidate();
-                menuPanel.repaint();
+                int pw = menuPanel.getPreferredSize().width, ph = menuPanel.getPreferredSize().height;
+                int fw = getContentPane().getWidth(), fh = getContentPane().getHeight();
+                int x = (fw - pw) / 2, y = (fh - ph) / 2;
+                menuPanel.setBounds(x, y, pw, ph);
+                menuPanel.revalidate(); menuPanel.repaint();
             }
         }
 
+        // --- ESC показ/сховати меню, пауза музики ---
         private void toggleMenuVisibility() {
             menuVisible = !menuVisible;
             menuPanel.setVisible(menuVisible);
             centerMenuPanel();
             if (menuVisible) {
-                // Пауза музики рівня
                 AudioManager.pauseLevelMusic();
             } else {
-                // Продовжити музику рівня
                 AudioManager.resumeLevelMusic();
                 setFocusable(true);
                 requestFocusInWindow();
             }
         }
 
-
-        @Override
-        public void keyTyped(KeyEvent e) {}
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                toggleMenuVisibility();
-            }
+        @Override public void keyTyped(KeyEvent e) {}
+        @Override public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) toggleMenuVisibility();
         }
-
-        @Override
-        public void keyReleased(KeyEvent e) {}
-
-        @Override
-        public void componentResized(ComponentEvent e) {
-            updateMenuComponentSizes();
-        }
-
-        @Override
-        public void componentMoved(ComponentEvent e) {}
-
-        @Override
-        public void componentShown(ComponentEvent e) {}
-
-        @Override
-        public void componentHidden(ComponentEvent e) {}
+        @Override public void keyReleased(KeyEvent e) {}
+        @Override public void componentResized(ComponentEvent e) { updateMenuComponentSizes(); }
+        @Override public void componentMoved(ComponentEvent e) {}
+        @Override public void componentShown(ComponentEvent e) {}
+        @Override public void componentHidden(ComponentEvent e) {}
     }
 
     public static void main(String[] args) {
@@ -363,10 +257,7 @@ public class Esc {
             try {
                 System.setProperty("awt.useSystemAAFontSettings", "on");
                 System.setProperty("swing.aatext", "true");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            } catch (Exception e) { e.printStackTrace(); }
             GameMenu mainMenu = new GameMenu();
             mainMenu.setVisible(true);
         });

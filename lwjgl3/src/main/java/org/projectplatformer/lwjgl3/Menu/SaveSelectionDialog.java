@@ -2,16 +2,11 @@ package org.projectplatformer.lwjgl3.Menu;
 
 import org.projectplatformer.lwjgl3.StartupHelper;
 import org.projectplatformer.lwjgl3.SaveManager;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
+import java.awt.event.*;
 
 public class SaveSelectionDialog extends JDialog {
 
@@ -73,6 +68,7 @@ public class SaveSelectionDialog extends JDialog {
                 String.format("<html><center>%s</center></html>", label),
                 FANTASY_BROWN_LEATHER);
             saveButton.addActionListener(e -> {
+                AudioManager.playClickSound();
                 // встановлюємо вибір слоту та режим Continue
                 StartupHelper.setSelectedSlot(slotNumber);
                 StartupHelper.setContinueGame(true);
@@ -89,7 +85,10 @@ public class SaveSelectionDialog extends JDialog {
         mainPanel.add(buttonsPanel, BorderLayout.CENTER);
 
         JButton backButton = createFantasyButton(LanguageManager.get("backButton"), FANTASY_BRONZE.darker());
-        backButton.addActionListener(e -> dispose());
+        backButton.addActionListener(e -> {
+            AudioManager.playClickSound();
+            dispose();
+        });
 
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         southPanel.setOpaque(false);
