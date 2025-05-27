@@ -75,7 +75,6 @@ import java.awt.event.*;
                 saveButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        // Dispose of the current dialog
                         dispose();
 
                         if (saveInfo.contains("Empty Slot")) {
@@ -87,10 +86,8 @@ import java.awt.event.*;
                                 JOptionPane.WARNING_MESSAGE
                             );
                             if (choice == JOptionPane.YES_OPTION) {
-                                // Hide the main menu, then show GameWorldWindow
-                                parentMenu.setVisible(false); // Hide GameMenu
-                                // CORRECTED LINE 95: Pass parentMenu to the constructor
-                                new GameWorldWindow(parentMenu); // Create and show GameWorldWindow
+                                parentMenu.setVisible(false);
+                                new GameWorldWindow(parentMenu);
                             }
                         } else {
                             JOptionPane.showMessageDialog(
@@ -99,10 +96,8 @@ import java.awt.event.*;
                                 LanguageManager.get("loadGame_title"),
                                 JOptionPane.INFORMATION_MESSAGE
                             );
-                            // Hide the main menu, then show GameWorldWindow
-                            parentMenu.setVisible(false); // Hide GameMenu
-                            // CORRECTED LINE 106: Pass parentMenu to the constructor
-                            new GameWorldWindow(parentMenu); // Create and show GameWorldWindow
+                            parentMenu.setVisible(false);
+                            new GameWorldWindow(parentMenu);
                         }
                     }
                 });

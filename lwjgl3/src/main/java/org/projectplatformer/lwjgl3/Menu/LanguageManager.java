@@ -8,7 +8,6 @@ public class LanguageManager {
     private static final Map<String, String> english = new HashMap<>();
 
     static {
-// English localization
         english.put("title", "ShopoPalo");
         english.put("playButton", "PLAY");
         english.put("guideButton", "GUIDE / MOVEMENT /CHARACTER CONTROL");
@@ -67,10 +66,9 @@ public class LanguageManager {
         english.put("gameWorld_equipment_message", "Opening your Equipment!");
         english.put("gameWorld_levels_message", "Preparing for Game!");
 
-        // --- Additions for LevelsWindow ---
-        english.put("levelsWindow_title", "Levels"); // Title for the Levels window itself
-        english.put("levelsWindow_chooseLevel", "Choose Level"); // Text for the title label
-        english.put("levelsWindow_level", "Level"); // Prefix for level buttons (e.g., "Level 1")
+        english.put("levelsWindow_title", "Levels");
+        english.put("levelsWindow_chooseLevel", "Choose Level");
+        english.put("levelsWindow_level", "Level");
         english.put("levelsWindow_startingLevel", "Starting Level");
         english.put("equipmentWindow_title", "Equipment");
         english.put("equipmentWindow_rangedWeapons", "Ranged Weapons");
@@ -81,13 +79,10 @@ public class LanguageManager {
         return english.getOrDefault(key, "KEY_NOT_FOUND");
     }
 
-    // This method name is more accurate for returning the language code
     public static String getCurrentLanguageCode() {
-        return "en"; // Currently only English is supported
+        return "en";
     }
 
-    // This method remains a no-op as per previous discussions (only English supported)
     public static void setLanguage(String langCode) {
-        // No-op for now, as only English is implemented
     }
 }

@@ -8,8 +8,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 
-
-
 public class GuideWindow extends JDialog {
 
         private static final Color FANTASY_DARK_WOOD = new Color(60, 40, 20);
@@ -33,10 +31,8 @@ public class GuideWindow extends JDialog {
         }
 
         private void initializeFonts() {
-            // Використовуємо стандартні шрифти
             FONT_TITLE_BASE = new Font("Serif", Font.BOLD, 36);
             FONT_TEXT_BASE = new Font("Serif", Font.PLAIN, 18);
-            // Можна спробувати також "Arial" або "SansSerif"
         }
 
         private void initializeUI() {

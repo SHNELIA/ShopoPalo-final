@@ -19,13 +19,13 @@ public class Esc {
             private static final Color PAUSE_MENU_BG_COLOR = new Color(51, 34, 25);
             private static final Color PAUSE_MENU_TITLE_COLOR = new Color(153, 102, 51);
             private static final Color BUTTON_TEXT_COLOR = new Color(255, 255, 255);
-            private static final Color BUTTON_BG_COLOR = new Color(102, 68, 34); // Базовий колір кнопки
+            private static final Color BUTTON_BG_COLOR = new Color(102, 68, 34);
 
-            // Нові кольори для станів ON/OFF та підсвічування
-            private static final Color BUTTON_ON_COLOR = new Color(70, 120, 70);    // Зеленуватий для ON
-            private static final Color BUTTON_OFF_COLOR = new Color(120, 70, 70);   // Червонуватий для OFF
-            private static final Color BUTTON_HOVER_COLOR_LIGHT = new Color(130, 95, 50); // Легше для наведення
-            private static final Color BUTTON_PRESSED_COLOR_DARK = new Color(70, 45, 15); // Темніше для натискання
+
+            private static final Color BUTTON_ON_COLOR = new Color(70, 120, 70);
+            private static final Color BUTTON_OFF_COLOR = new Color(120, 70, 70);
+            private static final Color BUTTON_HOVER_COLOR_LIGHT = new Color(130, 95, 50);
+            private static final Color BUTTON_PRESSED_COLOR_DARK = new Color(70, 45, 15);
 
 
             private static final Color BUTTON_BORDER_OUTER = new Color(128, 85, 42);
@@ -93,11 +93,10 @@ public class Esc {
 
                 gbc.insets = new Insets(15, 0, 15, 0);
 
-                JButton continueButton = createFantasyButton("CONTINUE", BUTTON_BG_COLOR); // Звичайні кнопки використовують базовий колір
+                JButton continueButton = createFantasyButton("CONTINUE", BUTTON_BG_COLOR);
                 JButton guideButton = createFantasyButton("GUIDE", BUTTON_BG_COLOR);
                 JButton goToMenuButton = createFantasyButton("GO TO MENU", BUTTON_BG_COLOR);
 
-                // Створюємо кнопки Music та Sounds з початковим станом кольору
                 musicButton = createFantasyButton(AudioManager.getMusicButtonText(),
                     AudioManager.isMusicEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR);
                 soundsButton = createFantasyButton(AudioManager.getSoundsButtonText(),
@@ -126,7 +125,7 @@ public class Esc {
                 musicButton.addActionListener(e -> {
                     AudioManager.toggleMusic();
                     musicButton.setText(AudioManager.getMusicButtonText());
-                    // Оновлюємо колір фону відповідно до нового стану
+
                     ((FantasyButton) musicButton).setCurrentBackgroundColor(
                         AudioManager.isMusicEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR
                     );
@@ -137,7 +136,7 @@ public class Esc {
                 soundsButton.addActionListener(e -> {
                     AudioManager.toggleSounds();
                     soundsButton.setText(AudioManager.getSoundsButtonText());
-                    // Оновлюємо колір фону відповідно до нового стану
+
                     ((FantasyButton) soundsButton).setCurrentBackgroundColor(
                         AudioManager.isSoundsEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR
                     );
@@ -172,17 +171,16 @@ public class Esc {
                 layeredPane.add(menuPanel, JLayeredPane.PALETTE_LAYER);
             }
 
-            // Внутрішній клас для кастомної кнопки
             private class FantasyButton extends JButton {
                 private Color currentBackgroundColor;
-                private Color defaultBackgroundColor; // Дефолтний колір кнопки (для hover/press)
+                private Color defaultBackgroundColor;
                 private boolean isHovered = false;
                 private boolean isPressed = false;
 
                 public FantasyButton(String text, Color defaultBgColor) {
                     super(text);
                     this.defaultBackgroundColor = defaultBgColor;
-                    this.currentBackgroundColor = defaultBgColor; // Початковий колір
+                    this.currentBackgroundColor = defaultBgColor;
                     setForeground(BUTTON_TEXT_COLOR);
                     setFocusPainted(false);
                     setContentAreaFilled(false);
@@ -193,32 +191,32 @@ public class Esc {
                         @Override
                         public void mouseEntered(MouseEvent e) {
                             isHovered = true;
-                            repaint(); // Перемальовуємо при наведенні
+                            repaint();
                         }
 
                         @Override
                         public void mouseExited(MouseEvent e) {
                             isHovered = false;
-                            repaint(); // Перемальовуємо при відведенні
+                            repaint();
                         }
 
                         @Override
                         public void mousePressed(MouseEvent e) {
                             isPressed = true;
-                            repaint(); // Перемальовуємо при натисканні
+                            repaint();
                         }
 
                         @Override
                         public void mouseReleased(MouseEvent e) {
                             isPressed = false;
-                            repaint(); // Перемальовуємо при відпусканні
+                            repaint();
                         }
                     });
                 }
 
                 public void setCurrentBackgroundColor(Color color) {
                     this.currentBackgroundColor = color;
-                    repaint(); // Обов'язково перемальовуємо при зміні стану
+                    repaint();
                 }
 
 
@@ -227,11 +225,11 @@ public class Esc {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                    Color actualBgColor = currentBackgroundColor; // Використовуємо поточний колір стану
+                    Color actualBgColor = currentBackgroundColor;
                     if (isPressed) {
-                        actualBgColor = BUTTON_PRESSED_COLOR_DARK; // Колір при натисканні
+                        actualBgColor = BUTTON_PRESSED_COLOR_DARK;
                     } else if (isHovered) {
-                        actualBgColor = BUTTON_HOVER_COLOR_LIGHT; // Колір при наведенні
+                        actualBgColor = BUTTON_HOVER_COLOR_LIGHT;
                     }
 
 
@@ -251,18 +249,16 @@ public class Esc {
                     FontMetrics fm = g2.getFontMetrics();
                     int x = (getWidth() - fm.stringWidth(getText())) / 2;
                     int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-                    g2.drawString(getText(), x, y); // Використовуємо getText()
+                    g2.drawString(getText(), x, y);
                     g2.dispose();
                 }
 
                 @Override
                 protected void paintBorder(Graphics g) {
-                    // Ми малюємо власну рамку в paintComponent, тому тут нічого не робимо
                 }
             }
 
 
-            // Змінено: тепер використовуємо FantasyButton
             private JButton createFantasyButton(String text, Color defaultBgColor) {
                 return new FantasyButton(text, defaultBgColor);
             }
@@ -284,7 +280,7 @@ public class Esc {
 
                 for (int i = 1; i < menuPanel.getComponentCount() - 1; i++) {
                     Component comp = menuPanel.getComponent(i);
-                    if (comp instanceof JButton) { // Може бути FantasyButton, але є JButton
+                    if (comp instanceof JButton) {
                         JButton button = (JButton) comp;
                         button.setFont(currentButtonFont);
 

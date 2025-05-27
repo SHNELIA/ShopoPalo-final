@@ -12,7 +12,7 @@ import java.io.InputStream;
 
 public class SettingsWindow extends JFrame {
     private GameMenu gameMenu;
-    private String initialLanguageCode; // Зберігаємо початкову мову
+    private String initialLanguageCode;
     private String selectedLanguageCode;
 
     private static final Color FANTASY_DARK_STONE = new Color(50, 50, 50);
@@ -29,7 +29,6 @@ public class SettingsWindow extends JFrame {
 
     static {
         try {
-            // ВИПРАВЛЕННЯ: Використання SettingsWindow.class замість settingsWindow.class
             InputStream is = SettingsWindow.class.getResourceAsStream("/fonts/MinecraftEven.ttf");
             if (is == null) {
                 System.err.println("Font file not found: /fonts/MinecraftEven.ttf. Using Arial.");
@@ -67,10 +66,8 @@ public class SettingsWindow extends JFrame {
     private JComboBox<String> languageComboBox;
     private JComboBox<String> resolutionComboBox;
 
-    // ВИПРАВЛЕННЯ: Це повинен бути конструктор, а не метод з void
     public SettingsWindow(GameMenu gameMenu) {
         this.gameMenu = gameMenu;
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
         this.initialLanguageCode = LanguageManager.getCurrentLanguageCode();
         this.selectedLanguageCode = initialLanguageCode;
         initializeUI();
@@ -87,7 +84,6 @@ public class SettingsWindow extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
-                // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
                 LanguageManager.setLanguage(initialLanguageCode);
                 gameMenu.showGameMenu();
             }
@@ -128,10 +124,8 @@ public class SettingsWindow extends JFrame {
         brightnessLabel = new JLabel();
         addSettingComponent(settingsGridPanel, gbc, brightnessLabel, createFantasySlider());
 
-        // !! ВАЖЛИВО: Якщо LanguageManager підтримує більше мов,
-        // цей список має бути динамічно сформований на основі доступних мов.
-        // Наприклад: LanguageManager.getAvailableLanguageNames()
-        String[] languages = {"English"}; // Припустимо, що у вас поки тільки англійська
+
+        String[] languages = {"English"};
         languageLabel = new JLabel();
         languageComboBox = createFantasyComboBox(languages);
         languageComboBox.addActionListener(e -> {
@@ -139,10 +133,7 @@ public class SettingsWindow extends JFrame {
             if ("English".equals(selectedLangName)) {
                 selectedLanguageCode = "en";
             }
-            // Додайте тут інші мови, наприклад:
-            // else if ("Українська".equals(selectedLangName)) {
-            //     selectedLanguageCode = "uk";
-            // }
+
             updateLanguageOnSelection();
         });
         addSettingComponent(settingsGridPanel, gbc, languageLabel, languageComboBox);
@@ -198,15 +189,10 @@ public class SettingsWindow extends JFrame {
         applyButton.setText(LanguageManager.get("settingsWindow_apply"));
         backButton.setText(LanguageManager.get("settingsWindow_back"));
 
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
         String currentLangCode = LanguageManager.getCurrentLanguageCode();
         if ("en".equals(currentLangCode)) {
             languageComboBox.setSelectedItem("English");
         }
-        // Додайте інші мовні відповідності, якщо є
-        // else if ("uk".equals(currentLangCode)) {
-        //     languageComboBox.setSelectedItem("Українська");
-        // }
 
         revalidate();
         repaint();
@@ -217,19 +203,17 @@ public class SettingsWindow extends JFrame {
         updateLanguageForCurrentWindow();
 
         if (gameMenu != null) {
-            // Переконайтеся, що gameMenu має публічний метод updateMenuComponentSizes()
-            // або будь-який інший метод для оновлення UI після зміни мови.
+
             gameMenu.updateMenuComponentSizes();
         }
     }
 
     private void loadCurrentSettings() {
-        // ВИПРАВЛЕННЯ: Змінено на LanguageManager.getCurrentLanguageCode()
+
         String currentLang = LanguageManager.getCurrentLanguageCode();
         if ("en".equals(currentLang)) {
             languageComboBox.setSelectedItem("English");
         }
-        // Додайте інші мовні відповідності, якщо є
 
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         if (gd.getFullScreenWindow() == gameMenu) {
@@ -246,7 +230,6 @@ public class SettingsWindow extends JFrame {
                 }
             }
             if (!found) {
-                // Встановлення резолюції за замовчуванням, якщо поточна не знайдена в списку
                 resolutionComboBox.setSelectedItem("1024x768");
             }
         }
@@ -263,11 +246,8 @@ public class SettingsWindow extends JFrame {
         slider.setFont(FONT_SMALL_LABEL);
         slider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Встановлення UI менеджерів для повзунка, щоб контролювати кольори
         UIManager.put("Slider.trackForeground", FANTASY_GREY_STONE_LIGHTER);
         UIManager.put("Slider.thumbForeground", FANTASY_BRONZE_ACCENT);
-        // Обов'язково викликати updateUI() для застосування змін, якщо ви змінюєте UIManager
-        // slider.updateUI(); // Можливо, знадобиться, якщо зміни не застосовуються одразу
         return slider;
     }
 
@@ -342,17 +322,15 @@ public class SettingsWindow extends JFrame {
         if (selectedResolution == null) return;
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-        // Приховати, звільнити ресурси та скинути undecorated перед застосуванням нових налаштувань
         gameMenu.setVisible(false);
         gameMenu.dispose();
-        gameMenu.setUndecorated(false); // Завжди скидати, щоб уникнути проблем, якщо попередньо був повноекранний режим
+        gameMenu.setUndecorated(false);
 
         if (selectedResolution.equals("Fullscreen")) {
             gameMenu.setUndecorated(true);
             if (gd.isFullScreenSupported()) {
                 gd.setFullScreenWindow(gameMenu);
             } else {
-                // Якщо повноекранний режим не підтримується, максимізуємо вікно
                 gameMenu.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
@@ -361,14 +339,14 @@ public class SettingsWindow extends JFrame {
             try {
                 String[] dimensions = selectedResolution.split("x");
                 int width = Integer.parseInt(dimensions[0]);
-                int height = Integer.parseInt(dimensions[1].split(" ")[0]); // Обробка "1920x1080 (Full HD)"
+                int height = Integer.parseInt(dimensions[1].split(" ")[0]);
                 gameMenu.setPreferredSize(new Dimension(width, height));
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 System.err.println("Invalid resolution format: " + selectedResolution + ". Error: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Failed to apply resolution: " + selectedResolution + "\nUsing default 1024x768.", "Error", JOptionPane.ERROR_MESSAGE);
-                gameMenu.setPreferredSize(new Dimension(1024, 768)); // Повернення до розміру за замовчуванням
+                gameMenu.setPreferredSize(new Dimension(1024, 768));
                 gameMenu.pack();
                 gameMenu.setLocationRelativeTo(null);
             }
@@ -386,22 +364,18 @@ public class SettingsWindow extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Це тестовий блок для запуску вікна налаштувань окремо.
-        // У реальній грі, ви будете викликати конструктор SettingsWindow з вашого GameMenu.
+
         SwingUtilities.invokeLater(() -> {
             try {
-                // Рекомендовано для кращого рендерингу шрифтів на деяких системах
                 System.setProperty("awt.useSystemAAFontSettings", "on");
                 System.setProperty("swing.aatext", "true");
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            // Створення фіктивного GameMenu для тестування
-            // У реальній грі, ви передасте сюди справжній об'єкт GameMenu
             GameMenu dummyMenu = new GameMenu();
-            dummyMenu.setVisible(false); // Приховати фіктивне меню, якщо не потрібно його показувати
-            new SettingsWindow(dummyMenu); // Виклик конструктора
+            dummyMenu.setVisible(false);
+            new SettingsWindow(dummyMenu);
         });
     }
 }

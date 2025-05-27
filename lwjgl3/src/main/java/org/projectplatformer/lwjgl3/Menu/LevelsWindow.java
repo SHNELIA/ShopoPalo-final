@@ -8,7 +8,6 @@ import java.awt.event.*;
 
     public class LevelsWindow extends JFrame implements ActionListener {
 
-        // Fantasy Colors (copied for consistency from GameWorldWindow)
         private static final Color FANTASY_DARK_WOOD = new Color(60, 40, 20);
         private static final Color FANTASY_BROWN_LEATHER = new Color(100, 70, 40);
         private static final Color FANTASY_BRONZE = new Color(180, 110, 50);
@@ -24,7 +23,6 @@ import java.awt.event.*;
         private static Font FONT_BUTTON_BASE;
 
         static {
-            // Додаємо System.setProperty для кращого рендерингу шрифтів
             try {
                 System.setProperty("awt.useSystemAAFontSettings", "on");
                 System.setProperty("swing.aatext", "true");
@@ -37,8 +35,8 @@ import java.awt.event.*;
 
         private JLabel titleLabel;
         private JButton backButton;
-        private JPanel levelsButtonsPanel; // Зберігаємо посилання для зручності
-        private GameWorldWindow parentWindow; // Reference to the parent GameWorldWindow
+        private JPanel levelsButtonsPanel;
+        private GameWorldWindow parentWindow;
 
         public LevelsWindow(GameWorldWindow gameWorldWindow) {
             this.parentWindow = gameWorldWindow;
@@ -69,26 +67,24 @@ import java.awt.event.*;
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridx = 0;
-            gbc.insets = new Insets(10, 0, 10, 0); // Зменшуємо відступи між кнопками
+            gbc.insets = new Insets(10, 0, 10, 0);
             gbc.fill = GridBagConstraints.HORIZONTAL;
             gbc.weightx = 1.0;
             gbc.anchor = GridBagConstraints.CENTER;
 
-            // Level Buttons
             for (int i = 1; i <= 4; i++) {
                 JButton levelButton = createFantasyButton(LanguageManager.get("levelsWindow_level") + " " + i, FANTASY_BROWN_LEATHER, FONT_BUTTON_BASE);
-                levelButton.setActionCommand("LEVEL_" + i); // Для обробки дії
+                levelButton.setActionCommand("LEVEL_" + i);
                 levelButton.addActionListener(this);
                 gbc.gridy = i - 1; // 0, 1, 2, 3
                 levelsButtonsPanel.add(levelButton, gbc);
             }
 
-            // Додаємо "stretchers" (ваги) для центрування кнопок по вертикалі
-            gbc.gridy = -1; // Для glue перед першим компонентом
+            gbc.gridy = -1;
             gbc.weighty = 1.0;
             levelsButtonsPanel.add(Box.createVerticalGlue(), gbc);
 
-            gbc.gridy = 4; // Після 4 кнопок (індекси 0-3)
+            gbc.gridy = 4;
             gbc.weighty = 1.0;
             levelsButtonsPanel.add(Box.createVerticalGlue(), gbc);
 
@@ -105,7 +101,7 @@ import java.awt.event.*;
 
             add(mainPanel);
             pack();
-            updateComponentSizes(); // Викликаємо при ініціалізації
+            updateComponentSizes();
             setVisible(true);
         }
 
@@ -119,19 +115,17 @@ import java.awt.event.*;
 
             titleLabel.setFont(FONT_TITLE_BASE.deriveFont((float) (FONT_TITLE_BASE.getSize2D() * overallScale)));
 
-            Font currentButtonFont = FONT_BUTTON_BASE.deriveFont((float) (FONT_BUTTON_BASE.getSize2D() * overallScale * 0.6)); // Ще трохи зменшити шрифт
+            Font currentButtonFont = FONT_BUTTON_BASE.deriveFont((float) (FONT_BUTTON_BASE.getSize2D() * overallScale * 0.6));
 
-            // ЗМЕНШЕНО ЩЕ БІЛЬШЕ: Зменшуємо базовий розмір для кнопок рівнів, особливо ширину
             Dimension baseBtnSize = new Dimension(200, 40); // Було 250x50
             Dimension newBtnSize = new Dimension(
                 (int) (baseBtnSize.width * overallScale),
                 (int) (baseBtnSize.height * overallScale)
             );
-            // Змінюємо мінімальні/максимальні обмеження для кнопок рівнів
-            newBtnSize.width = Math.max(newBtnSize.width, 120); // Мінімальна ширина
-            newBtnSize.height = Math.max(newBtnSize.height, 30); // Мінімальна висота
-            newBtnSize.width = Math.min(newBtnSize.width, 300); // Максимальна ширина
-            newBtnSize.height = Math.min(newBtnSize.height, 60); // Максимальна висота
+            newBtnSize.width = Math.max(newBtnSize.width, 120);
+            newBtnSize.height = Math.max(newBtnSize.height, 30);
+            newBtnSize.width = Math.min(newBtnSize.width, 300);
+            newBtnSize.height = Math.min(newBtnSize.height, 60);
 
 
             for (Component comp : levelsButtonsPanel.getComponents()) {
@@ -147,13 +141,11 @@ import java.awt.event.*;
             Font currentBackBtnFont = FONT_BUTTON_BASE.deriveFont(Font.PLAIN, (float) (FONT_BUTTON_BASE.getSize2D() * overallScale * 0.4)); // Ще трохи зменшити шрифт
             backButton.setFont(currentBackBtnFont);
 
-            // ЗМЕНШЕНО ЩЕ БІЛЬШЕ: Зменшуємо базовий розмір для кнопки "Назад"
             Dimension baseBackBtnSize = new Dimension(150, 40); // Було 180x45
             Dimension newBackBtnSize = new Dimension(
                 (int) (baseBackBtnSize.width * overallScale),
                 (int) (baseBackBtnSize.height * overallScale)
             );
-            // Змінюємо мінімальні/максимальні обмеження для кнопки "Назад"
             newBackBtnSize.width = Math.max(newBackBtnSize.width, 90);
             newBackBtnSize.height = Math.max(newBackBtnSize.height, 25);
             newBackBtnSize.width = Math.min(newBackBtnSize.width, 220);
@@ -176,9 +168,9 @@ import java.awt.event.*;
                 JOptionPane.showMessageDialog(this, LanguageManager.get("levelsWindow_startingLevel") + " " + levelNum);
 
             } else if (e.getSource() == backButton) {
-                this.dispose(); // Закриваємо LevelsWindow
+                this.dispose();
                 if (parentWindow != null) {
-                    parentWindow.setVisible(true); // Показуємо GameWorldWindow знову
+                    parentWindow.setVisible(true);
                 }
             }
         }
