@@ -21,11 +21,23 @@ import org.projectplatformer.lwjgl3.enemy.Spider;
 import org.projectplatformer.lwjgl3.objectslogic.Coin;
 import org.projectplatformer.lwjgl3.objectslogic.Platform;
 import org.projectplatformer.lwjgl3.objectslogic.World;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class TiledLevel extends Level {
     private final TiledMap map;
     private final OrthogonalTiledMapRenderer renderer;
     private final Texture defaultTex, coinTex;
+    private List<Rectangle> spikes = new ArrayList<>();
+
+
+    public List<Rectangle> getSpikes() {
+        return spikes;
+    }
+
+
+
 
     public TiledLevel(AssetManager am, SpriteBatch batch, String mapPath) {
         this.map      = am.get(mapPath, TiledMap.class);
@@ -118,6 +130,16 @@ public class TiledLevel extends Level {
                 }
             }
         }
+
+        // 5) Шипи з шару "Spikes"
+        MapLayer spikesLayer = map.getLayers().get("Spikes");
+        if (spikesLayer != null) {
+            for (MapObject obj : spikesLayer.getObjects().getByType(RectangleMapObject.class)) {
+                Rectangle r = ((RectangleMapObject) obj).getRectangle();
+                spikes.add(r);
+            }
+        }
+
     }
 
     public void renderMap(OrthographicCamera cam) {
