@@ -17,30 +17,25 @@ public class SkeletonAnimationManager implements Disposable {
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> attackAnim;
     private final Animation<TextureRegion> deathAnim;
-
     private float stateTime;
     private State currentState;
     private TextureRegion currentFrame;
-
     private final Texture[] frames;
 
     public SkeletonAnimationManager() {
         stateTime = 0f;
         currentState = State.WALK;
-
-        // Завантажуємо 16 кадрів з папки Enemies/Skeleton/
         frames = new Texture[14];
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < frames.length; i++) {
             String path = "Enemies/Skeleton/Skeleton" + (i + 1) + ".png";
             if (!Gdx.files.internal(path).exists()) {
-                throw new RuntimeException("❌ Missing file: " + path);
+                throw new RuntimeException("Missing file: " + path);
             }
             frames[i] = new Texture(path);
         }
-
-        walkAnim   = createAnimation(0, 5, 0.15f, Animation.PlayMode.LOOP);
+        walkAnim = createAnimation(0, 5, 0.15f, Animation.PlayMode.LOOP);
         attackAnim = createAnimation(6, 8, 0.12f, Animation.PlayMode.NORMAL);
-        deathAnim  = createAnimation(9, 13, 0.25f, Animation.PlayMode.NORMAL);
+        deathAnim = createAnimation(9, 13, 0.25f, Animation.PlayMode.NORMAL);
     }
 
     private Animation<TextureRegion> createAnimation(int from, int to, float frameDuration, Animation.PlayMode playMode) {
@@ -60,7 +55,6 @@ public class SkeletonAnimationManager implements Disposable {
         } else {
             stateTime += delta;
         }
-
         switch (currentState) {
             case WALK:
                 currentFrame = walkAnim.getKeyFrame(stateTime, true);
@@ -78,17 +72,18 @@ public class SkeletonAnimationManager implements Disposable {
         return currentFrame;
     }
 
-    // --- Методи для атаки та смерті (як у гобліна) ---
-
     public void resetAttackAnim() {
         stateTime = 0f;
     }
-    public void resetDeathAnim() {
-        stateTime = 0f;
-    }
+
     public boolean isAttackAnimationFinished() {
         return attackAnim.isAnimationFinished(stateTime);
     }
+
+    public void resetDeathAnim() {
+        stateTime = 0f;
+    }
+
     public boolean isDeathAnimationFinished() {
         return deathAnim.isAnimationFinished(stateTime);
     }

@@ -10,13 +10,13 @@ import org.projectplatformer.lwjgl3.weapon.SwordWeapon;
 
 import java.util.List;
 
-public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
-    private static final float PATROL_RADIUS   = 80f;
-    private static final float PATROL_SPEED    = 50f;
+public class Goblin extends BaseEnemy {
+    private static final float PATROL_RADIUS = 80f;
+    private static final float PATROL_SPEED = 50f;
     private static final float DETECTION_RANGE = 150f;
-    private static final float CHASE_SPEED     = 120f;
-    private static final float JUMP_SPEED      = 400f;
-    private static final float STEP_UP_SPEED   = 400f;
+    private static final float CHASE_SPEED = 120f;
+    private static final float JUMP_SPEED  = 400f;
+    private static final float STEP_UP_SPEED = 400f;
 
     private static final float ATTACK_DURATION = 0.45f;
     private static final float ATTACK_COOLDOWN = 1.20f;
@@ -25,72 +25,62 @@ public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
 
     private final SwordWeapon slashWeapon;
     private final float patrolCenterX;
-    private float patrolDir = 1f;
-    private boolean facingRight = true;
+    private float patrolDir = 1f;         // Напрямок патрулювання
+    private boolean facingRight = true;   // Орієнтація спрайта
 
+    // Менеджер анімацій гобліна
     private final GoblinAnimationManager animationManager;
     private GoblinAnimationManager.State currentState;
+    private boolean isAttackAnimationPlaying = false; // Атака зараз виконується?
+    private boolean deathAnimationStarted = false;    // Чи почалась анімація смерті?
 
-    private boolean isAttackAnimationPlaying = false;
-    private boolean deathAnimationStarted = false;
-
+    // Початкова орієнтація спрайта
     private static final boolean SPRITE_LOOKS_RIGHT = false;
 
     public Goblin(float x, float y) {
-        super(
-            x, y,
-            32f, 48f,
-            null,
-            50,
-            -2000f,
-            -1000f,
-            0.9f,
-            16f, 400f
-        );
-
-        this.slashWeapon = new SwordWeapon(
-            ATTACK_DURATION,
-            ATTACK_COOLDOWN,
-            ATTACK_DAMAGE
-        );
-        this.patrolCenterX = x;
-        this.animationManager = new GoblinAnimationManager();
-        this.currentState = GoblinAnimationManager.State.WALK;
+        super(x, y, 32f, 48f,
+            null,  // текстуру задаємо пізніше
+            50, -2000f, -1000f, 0.9f,
+            16f, 400f);
+        slashWeapon = new SwordWeapon(ATTACK_DURATION, ATTACK_COOLDOWN, ATTACK_DAMAGE);
+        patrolCenterX = x;
+        animationManager = new GoblinAnimationManager();
+        currentState = GoblinAnimationManager.State.WALK;
     }
 
     @Override
     public void update(float delta, Player player, List<Rectangle> platforms) {
+        // Якщо вже зник — нічого не робимо
         if (isDeadAndGone()) return;
 
         Rectangle b = getBounds();
         float pivotX = b.x + b.width / 2f;
         float pivotY = b.y + b.height * 0.7f;
 
-        // --- Анімація смерті ---
+        // Якщо гоблін мертвий — відтворюємо анімацію смерті
         if (!isAlive()) {
             currentState = GoblinAnimationManager.State.DEATH;
-
-            // Скидаємо анімацію смерті лише один раз
             if (!deathAnimationStarted) {
                 animationManager.resetDeathAnim();
                 deathAnimationStarted = true;
             }
             animationManager.update(delta, currentState, facingRight);
-
             if (animationManager.isDeathAnimationFinished()) {
                 setDeadAndGone();
             }
             return;
         }
 
-        // --- Звичайна логіка (живий гоблін) ---
+        // Оновлюємо зброю
         slashWeapon.update(delta, pivotX, pivotY, facingRight);
 
+        // Перевірка на дистанцію для атаки
         float playerCX = player.getBounds().x + player.getBounds().width / 2f;
         float dx = playerCX - pivotX;
-        boolean isInAttackRange = dx * dx <= MELEE_RANGE * MELEE_RANGE;
+        boolean inAttackRange = dx * dx <= MELEE_RANGE * MELEE_RANGE;
         boolean canAttack = slashWeapon.getCooldownRemaining() <= 0f;
 
+        // Логіка переходу між станами атаки і ходу
         if (isAttackAnimationPlaying) {
             if (animationManager.isAttackAnimationFinished()) {
                 isAttackAnimationPlaying = false;
@@ -98,42 +88,34 @@ public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
             } else {
                 currentState = GoblinAnimationManager.State.ATTACK;
             }
-        } else if (isInAttackRange && canAttack) {
+        } else if (inAttackRange && canAttack) {
             isAttackAnimationPlaying = true;
             animationManager.resetAttackAnim();
             currentState = GoblinAnimationManager.State.ATTACK;
             slashWeapon.startAttack(pivotX, pivotY, facingRight);
         } else {
-            if (Math.abs(physics.getVelocityX()) > 0.1f) {
-                currentState = GoblinAnimationManager.State.WALK;
-            } else {
-                currentState = GoblinAnimationManager.State.WALK;
-            }
+            currentState = GoblinAnimationManager.State.WALK;
         }
 
         animationManager.update(delta, currentState, facingRight);
         slashWeapon.applyDamage(player);
 
-        // Поки триває анімація атаки, не AI-мо і не ходимо
+        // Виклик фізики або рух під час атаки
         if (!isAttackAnimationPlaying) {
             super.update(delta, player, platforms);
         } else {
-            physics.update(delta, platforms); // лише гравітація/фізика
+            physics.update(delta, platforms);
         }
     }
 
     @Override
     protected void aiMove(float delta, Player player, List<Rectangle> platforms) {
         Rectangle b = getBounds();
-
         float belowX = b.x + b.width / 2f;
-        boolean hasGround = false;
-        for (Rectangle p : platforms) {
-            if (belowX >= p.x && belowX <= p.x + p.width && p.y + p.height <= b.y) {
-                hasGround = true;
-                break;
-            }
-        }
+        // Перевіряємо, чи є земля під гобліном
+        boolean hasGround = platforms.stream().anyMatch(p ->
+            belowX >= p.x && belowX <= p.x + p.width && p.y + p.height <= b.y
+        );
         if (!hasGround) {
             patrolDir = -patrolDir;
             facingRight = patrolDir > 0;
@@ -141,60 +123,56 @@ public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
             return;
         }
 
+        // Обчислюємо відстань до гравця
         float playerCX = player.getBounds().x + player.getBounds().width / 2f;
         float cx = b.x + b.width / 2f;
         float dx = playerCX - cx;
         float dist2 = dx * dx;
 
+        // Якщо гравець занадто близько — зупиняємося
         if (dist2 <= MELEE_RANGE * MELEE_RANGE) {
             physics.setVelocityX(0f);
             return;
         }
 
-        float moveDir, speed;
+        float moveDir;
+        float speed;
         boolean onGround = physics.getVelocityY() == 0f;
 
+        // Якщо гравець виявлений — переслідуємо
         if (dist2 <= DETECTION_RANGE * DETECTION_RANGE) {
             moveDir = Math.signum(dx);
             speed = CHASE_SPEED;
             facingRight = moveDir > 0;
         } else {
-            moveDir = patrolDir;
-            speed = PATROL_SPEED;
+            // Інакше — патрулювання навколо центру
             if (b.x > patrolCenterX + PATROL_RADIUS) patrolDir = -1f;
             if (b.x < patrolCenterX - PATROL_RADIUS) patrolDir = 1f;
             moveDir = patrolDir;
+            speed = PATROL_SPEED;
             facingRight = patrolDir > 0;
         }
 
+        // Перевірка стіни перед собою та можливість підйому
         float aheadX = facingRight ? b.x + b.width + 2f : b.x - 2f;
         Rectangle probe = new Rectangle(aheadX, b.y, 2f, b.height);
-        boolean wallAhead = false;
-        Rectangle hitP = null;
-        for (Rectangle p : platforms) {
-            if (probe.overlaps(p)) {
-                wallAhead = true;
-                hitP = p;
-                break;
-            }
-        }
+        boolean wallAhead = platforms.stream().anyMatch(p -> probe.overlaps(p));
 
         float footX = b.x + b.width / 2f + (facingRight ? 6f : -6f);
-        Rectangle footPrb = new Rectangle(footX, b.y - 4f, 4f, 4f);
-        boolean groundAhead = false;
-        for (Rectangle p : platforms) {
-            if (footPrb.overlaps(p)) {
-                groundAhead = true;
-                break;
-            }
-        }
+        Rectangle footProbe = new Rectangle(footX, b.y - 4f, 4f, 4f);
+        boolean groundAhead = platforms.stream().anyMatch(p -> footProbe.overlaps(p));
 
         if (wallAhead && onGround && groundAhead) {
-            float stepH = hitP.y + hitP.height - b.y;
-            if (stepH <= physics.getMaxStepHeight()) {
-                physics.setVelocityY(STEP_UP_SPEED);
-            } else {
-                physics.setVelocityY(JUMP_SPEED);
+            Rectangle hitP = platforms.stream()
+                .filter(p -> probe.overlaps(p))
+                .findFirst().orElse(null);
+            if (hitP != null) {
+                float stepH = hitP.y + hitP.height - b.y;
+                if (stepH <= physics.getMaxStepHeight()) {
+                    physics.setVelocityY(STEP_UP_SPEED);
+                } else {
+                    physics.setVelocityY(JUMP_SPEED);
+                }
             }
         }
 
@@ -206,9 +184,9 @@ public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         if (isDeadAndGone()) return;
         Rectangle b = getBounds();
         TextureRegion frame = animationManager.getCurrentFrame();
-
         boolean flip = facingRight != SPRITE_LOOKS_RIGHT;
         if (flip) {
+            // Малюємо перевернутий спрайт
             batch.draw(frame, b.x + b.width, b.y, -b.width, b.height);
         } else {
             batch.draw(frame, b.x, b.y, b.width, b.height);
@@ -218,17 +196,17 @@ public class Goblin extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
     @Override
     public void renderHitbox(ShapeRenderer r) {
         if (isDeadAndGone()) return;
-
         super.renderHitbox(r);
         Rectangle hb = slashWeapon.getHitbox();
         if (hb != null) {
             r.setColor(1f, 0.5f, 0f, 1f);
             r.rect(hb.x, hb.y, hb.width, hb.height);
         }
-        slashWeapon.renderTrajectory(r);
+        slashWeapon.renderTrajectory(r);  // малюємо траєкторію атаки
     }
 
+    @Override
     public void dispose() {
-        animationManager.dispose();
+        animationManager.dispose();  // звільняємо ресурси анімації
     }
 }

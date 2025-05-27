@@ -10,14 +10,16 @@ import org.projectplatformer.lwjgl3.weapon.SpearWeapon;
 
 import java.util.List;
 
-public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
-    // --- Рух ---
+public class Spider extends BaseEnemy {
+    // Налаштування руху та патрулювання
     private static final float PATROL_RADIUS = 80f;
     private static final float PATROL_SPEED = 60f;
     private static final float CHASE_RANGE = 100f;
     private static final float MOVE_SPEED = 80f;
+    private static final float STEP_UP_SPEED = 400f;
+    private static final float JUMP_SPEED = 400f;
 
-    // --- Атака списом ---
+    // Параметри атаки списом
     private static final float SPEAR_MAX_LENGTH = 40f;
     private static final float SPEAR_WIDTH = 8f;
     private static final float ATTACK_RANGE = 60f;
@@ -25,45 +27,31 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
     private static final float ATTACK_COOLDOWN = 0.8f;
     private static final int ATTACK_DAMAGE = 12;
 
-    private static final float STEP_UP_SPEED = 400f;
-    private static final float JUMP_SPEED = 400f;
-
     private final SpearWeapon spearWeapon;
     private final float patrolStartX;
     private float patrolDir = 1f;
     private boolean facingRight = true;
-
     private final SpiderAnimationManager animationManager;
     private SpiderAnimationManager.State currentState;
-
     private boolean isAttackAnimationPlaying = false;
-
     private static final boolean SPRITE_LOOKS_RIGHT = false;
 
+    // Ініціалізація
     public Spider(float x, float y) {
-        super(
-            x, y,
-            32f, 32f,
-            null,
-            45,
-            -2000f,
-            -1000f,
-            0.9f,
-            16f,
-            STEP_UP_SPEED
-        );
-        this.spearWeapon = new SpearWeapon(
+        super(x, y, 32f, 32f, null, 45, -2000f, -1000f, 0.9f, 16f, STEP_UP_SPEED);
+        spearWeapon = new SpearWeapon(
             SPEAR_MAX_LENGTH,
             SPEAR_WIDTH,
             ATTACK_DURATION,
             ATTACK_COOLDOWN,
             ATTACK_DAMAGE
         );
-        this.patrolStartX = x;
-        this.animationManager = new SpiderAnimationManager();
-        this.currentState = SpiderAnimationManager.State.WALK;
+        patrolStartX = x;
+        animationManager = new SpiderAnimationManager();
+        currentState = SpiderAnimationManager.State.WALK;
     }
 
+    // Оновлення станів та анімацій
     @Override
     public void update(float delta, Player player, List<Rectangle> platforms) {
         if (isDeadAndGone()) return;
@@ -77,13 +65,12 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         float pivotY = b.y + b.height / 2f;
 
         spearWeapon.update(delta, pivotX, pivotY, facingRight);
-
         float playerCX = player.getBounds().x + player.getBounds().width / 2f;
         float playerCY = player.getBounds().y + player.getBounds().height / 2f;
         float dx = playerCX - pivotX;
         float dy = playerCY - pivotY;
         float dist2 = dx * dx + dy * dy;
-        boolean playerSameLevel = Math.abs(dy) < b.height * 1.2f;
+        boolean sameLevel = Math.abs(dy) < b.height * 1.2f;
 
         if (isAttackAnimationPlaying) {
             if (animationManager.isAttackAnimationFinished()) {
@@ -98,8 +85,8 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
             return;
         }
 
-        // --- Почати атаку, якщо дуже близько і cooldown закінчився ---
-        if (dist2 <= ATTACK_RANGE * ATTACK_RANGE && playerSameLevel && spearWeapon.getCooldownRemaining() <= 0f) {
+        // Атака
+        if (dist2 <= ATTACK_RANGE * ATTACK_RANGE && sameLevel && spearWeapon.getCooldownRemaining() <= 0f) {
             isAttackAnimationPlaying = true;
             animationManager.resetAttackAnim();
             currentState = SpiderAnimationManager.State.ATTACK;
@@ -111,16 +98,15 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
             return;
         }
 
-        // --- Звичайна логіка руху (AI) ---
-        if (dist2 <= CHASE_RANGE * CHASE_RANGE && playerSameLevel) {
-            float moveDir = Math.signum(dx);
-            physics.setVelocityX(moveDir * MOVE_SPEED);
-            facingRight = moveDir > 0;
+        // Рух (AI)
+        if (dist2 <= CHASE_RANGE * CHASE_RANGE && sameLevel) {
+            float dir = Math.signum(dx);
+            physics.setVelocityX(dir * MOVE_SPEED);
+            facingRight = dir > 0;
         } else {
             if (b.x > patrolStartX + PATROL_RADIUS) patrolDir = -1f;
             if (b.x < patrolStartX - PATROL_RADIUS) patrolDir = 1f;
-            float moveDir = patrolDir;
-            physics.setVelocityX(moveDir * PATROL_SPEED);
+            physics.setVelocityX(patrolDir * PATROL_SPEED);
             facingRight = patrolDir > 0;
         }
 
@@ -128,7 +114,6 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         animationManager.update(delta, currentState, facingRight);
         spearWeapon.applyDamage(player);
 
-        // Step up якщо треба
         if (physics.getVelocityX() != 0f) {
             physics.tryStepUp(platforms, physics.getVelocityX() > 0f);
         }
@@ -136,13 +121,12 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         super.update(delta, player, platforms);
     }
 
+    // Логіка руху та обходу перешкод
     @Override
     protected void aiMove(float delta, Player player, List<Rectangle> platforms) {
         Rectangle b = getBounds();
         float cx = b.x + b.width / 2f;
-        Rectangle pb = player.getBounds();
-        float px = pb.x + pb.width / 2f;
-        float dx = px - cx;
+        float dx = player.getBounds().x + player.getBounds().width / 2f - cx;
         float dist2 = dx * dx;
 
         if (dist2 <= ATTACK_RANGE * ATTACK_RANGE) {
@@ -151,14 +135,13 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         }
 
         if (dist2 <= CHASE_RANGE * CHASE_RANGE) {
-            float moveDir = Math.signum(dx);
-            physics.setVelocityX(moveDir * MOVE_SPEED);
-            facingRight = moveDir > 0;
+            float dir = Math.signum(dx);
+            physics.setVelocityX(dir * MOVE_SPEED);
+            facingRight = dir > 0;
         } else {
             if (b.x > patrolStartX + PATROL_RADIUS) patrolDir = -1f;
             if (b.x < patrolStartX - PATROL_RADIUS) patrolDir = 1f;
-            float moveDir = patrolDir;
-            physics.setVelocityX(moveDir * PATROL_SPEED);
+            physics.setVelocityX(patrolDir * PATROL_SPEED);
             facingRight = patrolDir > 0;
         }
 
@@ -166,11 +149,11 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         float probeX = facingRight ? b.x + b.width + 2f : b.x - 2f;
         Rectangle probe = new Rectangle(probeX, b.y, 2f, b.height);
         boolean wallAhead = false;
-        Rectangle hitPlatform = null;
+        Rectangle hitP = null;
         for (Rectangle p : platforms) {
             if (probe.overlaps(p)) {
                 wallAhead = true;
-                hitPlatform = p;
+                hitP = p;
                 break;
             }
         }
@@ -192,18 +175,14 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         }
     }
 
+    // Відмальовка спрайта
     @Override
     public void render(SpriteBatch batch) {
         if (isDeadAndGone()) return;
         Rectangle b = getBounds();
         TextureRegion frame = animationManager.getCurrentFrame();
-
         boolean flip = facingRight != SPRITE_LOOKS_RIGHT;
-        if (flip) {
-            batch.draw(frame, b.x + b.width, b.y, -b.width, b.height);
-        } else {
-            batch.draw(frame, b.x, b.y, b.width, b.height);
-        }
+        batch.draw(frame, flip ? b.x + b.width : b.x, b.y, flip ? -b.width : b.width, b.height);
     }
 
     @Override
@@ -211,12 +190,11 @@ public class Spider extends org.projectplatformer.lwjgl3.enemy.BaseEnemy {
         if (isDeadAndGone()) return;
         super.renderHitbox(r);
         Rectangle hb = spearWeapon.getHitbox();
-        if (hb != null) {
-            r.setColor(0f, 0.8f, 0.8f, 1f);
-            r.rect(hb.x, hb.y, hb.width, hb.height);
-        }
+        if (hb != null) r.rect(hb.x, hb.y, hb.width, hb.height);
     }
 
+    // Звільнення ресурсів
+    @Override
     public void dispose() {
         animationManager.dispose();
     }

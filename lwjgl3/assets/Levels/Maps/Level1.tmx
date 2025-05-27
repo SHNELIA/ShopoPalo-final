@@ -208,7 +208,7 @@
     <property name="type" value="Goblin"/>
    </properties>
   </object>
-  <object id="20" name="Witch" type="Witch" x="510" y="782.667" width="72.6667" height="98">
+  <object id="20" name="Witch" type="Witch" x="539.333" y="770.667" width="72.6667" height="98">
    <properties>
     <property name="type" value="Witch"/>
    </properties>

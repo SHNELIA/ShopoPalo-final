@@ -53,7 +53,7 @@ public class Player {
     // --- Переміщення ---
     private static final float MOVE_SPEED   = 120f;
     private static final float JUMP_SPEED   = 350f;
-    private static final int   MAX_JUMPS    = 3;
+    private static final int   MAX_JUMPS    = 2;
 
     private static final float WALL_THRESHOLD = 5f;
     private static final float WALL_JUMP_UP   = 100f;
@@ -74,6 +74,18 @@ public class Player {
 
     private float damageCooldown = 0f;
     private static final float DAMAGE_COOLDOWN = 1f;
+
+    /** Повертає скільки ще лишилося секунд до повторного ураження */
+    public float getDamageCooldown() {
+        return damageCooldown;
+    }
+
+    /** Встановлює лічильник невразливості після ураження */
+    public void setDamageCooldown(float cd) {
+        this.damageCooldown = cd;
+    }
+
+
 
     private boolean coinCollect = false;
     private float collectTimer = 0f;
@@ -144,10 +156,10 @@ public class Player {
 
         // --- Таймери ---
         stateTime += delta;
-        damageCooldown    = Math.max(0f, damageCooldown - delta);
-        dashTimer         = Math.max(0f, dashTimer         - delta);
+        damageCooldown = Math.max(0f, damageCooldown - delta);
+        dashTimer = Math.max(0f, dashTimer - delta);
         dashCooldownTimer = Math.max(0f, dashCooldownTimer - delta);
-        attackCooldown    = Math.max(0f, attackCooldown - delta);
+        attackCooldown = Math.max(0f, attackCooldown - delta);
         spikeCooldown = Math.max(0f, spikeCooldown - delta);
 
 
@@ -357,7 +369,7 @@ public class Player {
     }
 
     public void renderHitbox(ShapeRenderer r) {
-        r.setColor(1f, 0f, 0f, 1f);
+//        r.setColor(1f, 0f, 0f, 1f);
         Rectangle b = physics.getBounds();
         r.rect(b.x, b.y, b.width, b.height);
         Rectangle hb = currentWeapon.getHitbox();
@@ -365,7 +377,7 @@ public class Player {
             r.setColor(0f,1f,0f,1f);
             r.rect(hb.x, hb.y, hb.width, hb.height);
         }
-        if (currentWeapon instanceof BowWeapon) ((BowWeapon)currentWeapon).renderProjectiles(r);
+//        if (currentWeapon instanceof BowWeapon) ((BowWeapon)currentWeapon).renderProjectiles(r);
     }
 
     public boolean isAlive() { return isAlive; }
@@ -386,10 +398,6 @@ public class Player {
     }
     public void setHealth(int health) {
         this.health = Math.min(health, maxHealth);
-    }
-
-    public float getDamageCooldown() {
-        return damageCooldown;
     }
 
     public float getSpikeCooldown() {

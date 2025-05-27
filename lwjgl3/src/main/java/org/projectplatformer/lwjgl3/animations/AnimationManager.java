@@ -27,15 +27,15 @@ public class AnimationManager {
     public AnimationManager() {
         String base = "Player/";
 
-        animations.put(State.IDLE,         loadAnimation(base + "Idle",         0.15f, true));
-        animations.put(State.WALK,         loadAnimation(base + "Walk",         0.15f, true));
-        animations.put(State.JUMP,         loadAnimation(base + "Jump",         0.15f,  false));
-        animations.put(State.ATTACKSWORD,  loadAnimation(base + "Sword attack", 0.06f, false));
-        animations.put(State.ATTACKSPEAR,  loadAnimation(base + "Spear attack", 0.1f,  false));
-        animations.put(State.ATTACKBOW,    loadAnimation(base + "Bow attack",   0.12f, false));
-        animations.put(State.DEFEAT,       loadAnimation(base + "Defeat",       0.1f,  false));
-        animations.put(State.SLIDING,      loadAnimation(base + "Wall climbing",0.6f,  false));
-        animations.put(State.COINCOLLECT,  loadAnimation(base + "Coin collected",0.15f, false));
+        animations.put(State.IDLE, loadAnimation(base + "Idle", 0.15f, true));
+        animations.put(State.WALK, loadAnimation(base + "Walk", 0.15f, true));
+        animations.put(State.JUMP, loadAnimation(base + "Jump", 0.15f, false));
+        animations.put(State.ATTACKSWORD, loadAnimation(base + "Sword attack", 0.06f, false));
+        animations.put(State.ATTACKSPEAR, loadAnimation(base + "Spear attack", 0.1f, false));
+        animations.put(State.ATTACKBOW, loadAnimation(base + "Bow attack", 0.12f, false));
+        animations.put(State.DEFEAT, loadAnimation(base + "Defeat", 0.1f, false));
+        animations.put(State.SLIDING, loadAnimation(base + "Wall climbing", 0.6f, false));
+        animations.put(State.COINCOLLECT, loadAnimation(base + "Coin collected", 0.15f, false));
 
         // Ensure all possible states are accounted for
         for (State state : State.values()) {
@@ -119,9 +119,11 @@ public class AnimationManager {
     public State getCurrentState() {
         return currentState;
     }
+
     public float getStateTime() {
         return stateTime;
     }
+
     public boolean isAnimationFinished(State state) {
         Animation<TextureRegion> anim = animations.get(state);
         return anim != null && anim.isAnimationFinished(stateTime);
