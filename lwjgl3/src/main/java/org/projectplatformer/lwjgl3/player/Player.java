@@ -46,6 +46,10 @@ public class Player {
     private boolean hitboxActive = false;
     private boolean arrowReleased = false;
 
+    private float spikeCooldown = 0f;
+    private static final float SPIKE_COOLDOWN = 1f;
+
+
     // --- Переміщення ---
     private static final float MOVE_SPEED   = 100f;
     private static final float JUMP_SPEED   = 350f;
@@ -89,7 +93,6 @@ public class Player {
 
     private static final float DASH_DURATION  = 0.3f;
     private static final float DASH_COOLDOWN  = 1f;
-
 
     public Player(float x, float y) {
         Rectangle bounds = new Rectangle(x, y, 32, 52);
@@ -144,6 +147,8 @@ public class Player {
         dashTimer         = Math.max(0f, dashTimer         - delta);
         dashCooldownTimer = Math.max(0f, dashCooldownTimer - delta);
         attackCooldown    = Math.max(0f, attackCooldown - delta);
+        spikeCooldown = Math.max(0f, spikeCooldown - delta);
+
 
         if (currentWeapon instanceof BowWeapon)
             ((BowWeapon)currentWeapon).setPlatforms(platforms);
@@ -385,6 +390,21 @@ public class Player {
     public void setHealth(int health) {
         this.health = Math.min(health, maxHealth);
     }
+
+    public float getDamageCooldown() {
+        return damageCooldown;
+    }
+
+    public float getSpikeCooldown() {
+        return spikeCooldown;
+    }
+
+    public void setSpikeCooldown(float cooldown) {
+        this.spikeCooldown = cooldown;
+    }
+
+
+
 
     public void takeDamage(int dmg) {
         if (!isAlive || dying) return;

@@ -62,6 +62,7 @@ public class Main extends ApplicationAdapter {
     private float fallTimer = 0f;
     private static final float FALL_DEATH_DELAY = 0.5f;
 
+
     // UI
     private Stage uiStage;
     private Skin skin;
@@ -203,7 +204,20 @@ public class Main extends ApplicationAdapter {
             loadLevel(currentLevelIndex);
         }
 
-        // 5) Оновлюємо ігрову логіку
+
+        if (player.isAlive()) {
+            for (Rectangle spike : tiledLevel.getSpikes()) {
+                if (player.getSpikeCooldown() <= 0f && player.getBounds().overlaps(spike)) {
+                    player.takeDamage(10);  // наносимо 10 урону
+                    player.setSpikeCooldown(1f);  // затримка 1 секунда
+                    break;
+                }
+            }
+            player.update(delta, world.getPlatformBounds(), world.getEnemies());
+        }
+
+
+        // Оновлюємо гравця
         if (player.isAlive()) {
             player.update(delta, world.getPlatformBounds(), world.getEnemies());
         }
