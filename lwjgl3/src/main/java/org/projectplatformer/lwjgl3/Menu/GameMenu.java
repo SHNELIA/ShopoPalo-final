@@ -445,6 +445,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        AudioManager.playClickSound();
         if (e.getSource() == playButton) {
             showPlayMenu();
         } else if (e.getSource() == guideButton) {
@@ -696,6 +697,7 @@ public class GameMenu extends JFrame implements ActionListener, ComponentListene
 
     public void showGameMenu() {
         this.setVisible(true);
+        AudioManager.playMenuMusic();
         musicButton.setText(AudioManager.getMusicButtonText());
         ((FantasyButton)musicButton).setCurrentBackgroundColor(
             AudioManager.isMusicEnabled() ? BUTTON_ON_COLOR : BUTTON_OFF_COLOR
